@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import Link from 'next/link';
 import { ArrowRight, Laptop, Plug } from 'lucide-react';
 
@@ -9,21 +8,22 @@ import { HomeSectionsSkeleton } from '@/components/home/home-sections-skeleton';
 import { ImageThumb } from '@/components/shared/image-thumb';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useI18n } from '@/i18n';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
-import { getDb } from '@/lib/db';
 import { formatPrice } from '@/lib/format';
+import { accessoryService } from '@/services/accessory.service';
+import { productService } from '@/services/product.service';
 
 export function HomeSections() {
   const { t, locale } = useI18n();
   const labels = useLocalizedLabels();
   const isRtl = locale === 'ar';
 
-  const data = useLiveQuery(async () => {
-    const db = getDb();
+  const data = useCachedLiveQuery('home-sections', async () => {
     const [products, accessories] = await Promise.all([
-      db.products.toArray(),
-      db.accessories.toArray(),
+      productService.search({}),
+      accessoryService.search({}),
     ]);
     return { products, accessories };
   }, []);

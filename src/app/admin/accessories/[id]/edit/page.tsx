@@ -3,13 +3,13 @@
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 import { useI18n } from '@/i18n';
 import { AccessoryForm } from '@/components/admin/accessory-form';
 import { Button } from '@/components/ui/button';
-import { getDb } from '@/lib/db';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
+import { accessoryService } from '@/services/accessory.service';
 
 interface EditAccessoryPageProps {
   params: Promise<{ id: string }>;
@@ -19,7 +19,11 @@ export default function EditAccessoryPage({ params }: EditAccessoryPageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { t } = useI18n();
-  const accessory = useLiveQuery(async () => (await getDb().accessories.get(id)) ?? null, [id]);
+  const accessory = useCachedLiveQuery(
+    `admin-edit-accessory-${id}`,
+    async () => accessoryService.findById(id),
+    [id],
+  );
 
   if (accessory === undefined) {
     return (

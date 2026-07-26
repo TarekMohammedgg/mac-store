@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import Link from 'next/link';
 import { Boxes, DollarSign, Package, Plug, TrendingUp } from 'lucide-react';
 
 import { useI18n } from '@/i18n';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,17 +16,23 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getDb } from '@/lib/db';
+import { StatsCardSkeleton, TableSkeleton } from '@/components/shared/skeletons';
 import { formatPrice, formatDate } from '@/lib/format';
 import { Badge } from '@/components/ui/badge';
+import { accessoryService } from '@/services/accessory.service';
+import { analyticsService } from '@/services/analytics.service';
+import { productService } from '@/services/product.service';
 
 export default function AdminDashboardPage() {
   const { t } = useI18n();
   const labels = useLocalizedLabels();
-  const stats = useLiveQuery(async () => {
-    const db = getDb();
-    const products = await db.products.toArray();
-    const accessories = await db.accessories.toArray();
+
+  const dashboard = useCachedLiveQuery('admin-dashboard', async () => {
+    const [products, accessories, insights] = await Promise.all([
+      productService.search({}),
+      accessoryService.search({}),
+      analyticsService.getInsights(30),
+    ]);
 
     const totalProducts = products.length;
     const availableProducts = products.filter((p) => p.availability === 'available').length;
@@ -38,36 +44,49 @@ export default function AdminDashboardPage() {
     const accessoryUnits = accessories.reduce((acc, a) => acc + a.quantity, 0);
     const accessoryValue = accessories.reduce((acc, a) => acc + a.price * a.quantity, 0);
 
+    const recentProducts = [...products]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 5);
+    const recentAccessories = [...accessories]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 5);
+
     return {
-      totalProducts,
-      availableProducts,
-      soldProducts,
-      inventoryValue,
-      totalAccessories,
-      accessoryUnits,
-      accessoryValue,
+      stats: {
+        totalProducts,
+        availableProducts,
+        soldProducts,
+        inventoryValue,
+        totalAccessories,
+        accessoryUnits,
+        accessoryValue,
+        revenue30: insights.revenue,
+        unitsSold30: insights.unitsSold,
+        topSeller: insights.topByRevenue[0]?.name ?? null,
+      },
+      recentProducts,
+      recentAccessories,
     };
   }, []);
 
-  const recentProducts = useLiveQuery(async () => {
-    const db = getDb();
-    const products = await db.products.toArray();
-    return products
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 5);
-  }, []);
-
-  const recentAccessories = useLiveQuery(async () => {
-    const db = getDb();
-    const accessories = await db.accessories.toArray();
-    return accessories
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 5);
-  }, []);
-
-  if (!stats) {
-    return <div className="text-sm text-muted-foreground">{t('common.loading')}</div>;
+  if (!dashboard) {
+    return (
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <div className="h-8 w-48 animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-64 animate-pulse rounded-md bg-muted" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <StatsCardSkeleton key={i} />
+          ))}
+        </div>
+        <TableSkeleton rows={5} columns={4} />
+      </div>
+    );
   }
+
+  const { stats, recentProducts, recentAccessories } = dashboard;
 
   return (
     <div className="space-y-8">
@@ -78,6 +97,18 @@ export default function AdminDashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          icon={<DollarSign className="h-4 w-4" />}
+          label={t('analytics.kpi.revenue')}
+          value={formatPrice(stats.revenue30)}
+          hint={t('analytics.periodDays', 30)}
+        />
+        <StatCard
+          icon={<TrendingUp className="h-4 w-4" />}
+          label={t('analytics.kpi.unitsSold')}
+          value={String(stats.unitsSold30)}
+          hint={t('analytics.periodDays', 30)}
+        />
+        <StatCard
           icon={<Package className="h-4 w-4" />}
           label={t('admin.stats.totalDevices')}
           value={String(stats.totalProducts)}
@@ -87,10 +118,26 @@ export default function AdminDashboardPage() {
           icon={<Plug className="h-4 w-4" />}
           label={t('admin.stats.totalAccessories')}
           value={String(stats.totalAccessories)}
-          hint={t('admin.stats.accessoriesHint', stats.accessoryUnits)}
+          hint={
+            stats.topSeller
+              ? `${t('analytics.charts.topRevenue')}: ${stats.topSeller}`
+              : t('admin.stats.accessoriesHint', stats.accessoryUnits)
+          }
         />
+      </div>
+
+      <div className="flex justify-end">
+        <Link
+          href="/admin/analytics"
+          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          {t('nav.analytics')} →
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<DollarSign className="h-4 w-4" />}
+          icon={<Package className="h-4 w-4" />}
           label={t('admin.stats.deviceValue')}
           value={formatPrice(stats.inventoryValue)}
           hint={t('admin.stats.deviceValueHint')}
@@ -119,7 +166,7 @@ export default function AdminDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {recentProducts && recentProducts.length > 0 ? (
+            {recentProducts.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -165,7 +212,7 @@ export default function AdminDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {recentAccessories && recentAccessories.length > 0 ? (
+            {recentAccessories.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -200,7 +247,7 @@ export default function AdminDashboardPage() {
           <CardTitle className="text-base">{t('admin.recentActivity')}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {recentProducts && recentProducts.length > 0 ? (
+          {recentProducts.length > 0 ? (
             <ul className="space-y-3 text-sm">
               {recentProducts.map((p) => (
                 <li

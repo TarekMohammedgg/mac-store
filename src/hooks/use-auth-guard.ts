@@ -1,24 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
-import { useAuthStore } from '@/stores/auth.store';
+import { rehydrateAuthStore, useAuthStore } from '@/stores/auth.store';
 
 export function useAuthGuard() {
-  const { session, initialized, initialize } = useAuthStore();
-  const [checking, setChecking] = useState(true);
+  const session = useAuthStore((state) => state.session);
+  const initialized = useAuthStore((state) => state.initialized);
+  const hydrated = useAuthStore((state) => state.hydrated);
 
   useEffect(() => {
-    if (!initialized) {
-      initialize();
-    } else {
-      setChecking(false);
-    }
-  }, [initialized, initialize]);
+    void rehydrateAuthStore();
+  }, []);
 
-  useEffect(() => {
-    if (initialized) setChecking(false);
-  }, [initialized]);
-
-  return { session, isAuthenticated: Boolean(session), checking, initialized };
+  return {
+    session,
+    isAuthenticated: Boolean(session),
+    isAdmin: session?.role === 'admin',
+    hydrated: hydrated && initialized,
+    initialized,
+  };
 }

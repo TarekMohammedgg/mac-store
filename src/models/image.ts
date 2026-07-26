@@ -5,6 +5,8 @@ export interface StoredImage {
   mimeType: string;
   size: number;
   createdAt: string;
+  publicUrl?: string;
+  storagePath?: string;
 }
 
 export interface ImageInput {

@@ -1,7 +1,10 @@
 'use client';
 
 import { ACCESSORY_CATEGORIES, type AccessoryCategory } from '@/lib/accessory-constants';
-import { getDb } from '@/lib/db';
+import { notifyDataRefresh } from '@/lib/data-refresh';
+import { mapAccessory, toAccessoryRow, type AccessoryRow } from '@/lib/supabase/mappers';
+import { supabase } from '@/lib/supabase/client';
+import { throwIfSupabaseError } from '@/lib/supabase/errors';
 import { generateId, toIsoString } from '@/lib/utils';
 import type { Accessory, AccessoryCreate, AccessoryUpdate } from '@/models/accessory';
 
@@ -11,6 +14,7 @@ import type {
   AccessorySearchParams,
   PaginatedResult,
 } from './accessory-repository.types';
+import { imageRepository } from './image.repository';
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -56,11 +60,16 @@ function sortItems(items: Accessory[], sortBy: AccessorySearchParams['sortBy']):
   return sorted;
 }
 
-class DexieAccessoryRepository implements AccessoryRepository {
+async function fetchAllAccessories(): Promise<Accessory[]> {
+  const { data, error } = await supabase.from('accessories').select('*');
+  throwIfSupabaseError(error);
+  return ((data ?? []) as AccessoryRow[]).map(mapAccessory);
+}
+
+class SupabaseAccessoryRepository implements AccessoryRepository {
   async list(params: AccessoryListParams = {}): Promise<PaginatedResult<Accessory>> {
     const { page = 1, pageSize = DEFAULT_PAGE_SIZE, ...search } = params;
-    const db = getDb();
-    const all = await db.accessories.toArray();
+    const all = await fetchAllAccessories();
     const filtered = all.filter((item) => matchesSearch(item, search));
     const sorted = sortItems(filtered, search.sortBy);
     const total = sorted.length;
@@ -71,19 +80,21 @@ class DexieAccessoryRepository implements AccessoryRepository {
   }
 
   async search(params: AccessorySearchParams): Promise<Accessory[]> {
-    const db = getDb();
-    const all = await db.accessories.toArray();
+    const all = await fetchAllAccessories();
     return sortItems(all.filter((item) => matchesSearch(item, params)), params.sortBy);
   }
 
   async findById(id: string): Promise<Accessory | null> {
-    const db = getDb();
-    const record = await db.accessories.get(id);
-    return record ?? null;
+    const { data, error } = await supabase
+      .from('accessories')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    throwIfSupabaseError(error);
+    return data ? mapAccessory(data as AccessoryRow) : null;
   }
 
   async create(data: AccessoryCreate): Promise<Accessory> {
-    const db = getDb();
     const now = toIsoString(new Date());
     const record: Accessory = {
       ...data,
@@ -91,13 +102,18 @@ class DexieAccessoryRepository implements AccessoryRepository {
       createdAt: now,
       updatedAt: now,
     };
-    await db.accessories.put(record);
-    return record;
+    const { data: inserted, error } = await supabase
+      .from('accessories')
+      .insert(toAccessoryRow(record))
+      .select('*')
+      .single();
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return mapAccessory(inserted as AccessoryRow);
   }
 
   async update(id: string, data: AccessoryUpdate): Promise<Accessory> {
-    const db = getDb();
-    const existing = await db.accessories.get(id);
+    const existing = await this.findById(id);
     if (!existing) throw new Error(`Accessory ${id} not found`);
     const next: Accessory = {
       ...existing,
@@ -106,46 +122,44 @@ class DexieAccessoryRepository implements AccessoryRepository {
       createdAt: existing.createdAt,
       updatedAt: toIsoString(new Date()),
     };
-    await db.accessories.put(next);
-    return next;
+    const { data: updated, error } = await supabase
+      .from('accessories')
+      .update(toAccessoryRow(next))
+      .eq('id', id)
+      .select('*')
+      .single();
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return mapAccessory(updated as AccessoryRow);
   }
 
   async delete(id: string): Promise<void> {
-    const db = getDb();
-    const accessory = await db.accessories.get(id);
+    const accessory = await this.findById(id);
     if (!accessory) return;
-    await db.transaction('rw', db.accessories, db.images, async () => {
-      await db.accessories.delete(id);
-      const ids = [accessory.coverImageId, ...accessory.imageIds].filter(
-        (value): value is string => typeof value === 'string' && value.length > 0,
-      );
-      if (ids.length > 0) {
-        await db.images.bulkDelete(ids);
-      }
-    });
+    const { error } = await supabase.from('accessories').delete().eq('id', id);
+    throwIfSupabaseError(error);
+    const ids = [accessory.coverImageId, ...accessory.imageIds].filter(
+      (value): value is string => typeof value === 'string' && value.length > 0,
+    );
+    if (ids.length > 0) {
+      await imageRepository.deleteMany(ids);
+    }
+    notifyDataRefresh();
   }
 
   async duplicate(id: string): Promise<Accessory> {
     const source = await this.findById(id);
     if (!source) throw new Error(`Accessory ${id} not found`);
-    const now = toIsoString(new Date());
-    const clone: Accessory = {
+    return this.create({
       ...source,
-      id: generateId('acc'),
       name: `${source.name} (Copy)`,
       quantity: 0,
       availability: false,
-      createdAt: now,
-      updatedAt: now,
-    };
-    const db = getDb();
-    await db.accessories.put(clone);
-    return clone;
+    });
   }
 
   async adjustQuantity(id: string, delta: number): Promise<Accessory> {
-    const db = getDb();
-    const existing = await db.accessories.get(id);
+    const existing = await this.findById(id);
     if (!existing) throw new Error(`Accessory ${id} not found`);
     const quantity = Math.max(0, existing.quantity + delta);
     const availability = quantity > 0;
@@ -153,8 +167,7 @@ class DexieAccessoryRepository implements AccessoryRepository {
   }
 
   async countByCategory(): Promise<Record<AccessoryCategory, number>> {
-    const db = getDb();
-    const all = await db.accessories.toArray();
+    const all = await fetchAllAccessories();
     const counts = ACCESSORY_CATEGORIES.reduce(
       (acc, key) => ({ ...acc, [key]: 0 }),
       {} as Record<AccessoryCategory, number>,
@@ -166,4 +179,4 @@ class DexieAccessoryRepository implements AccessoryRepository {
   }
 }
 
-export const accessoryRepository: AccessoryRepository = new DexieAccessoryRepository();
+export const accessoryRepository: AccessoryRepository = new SupabaseAccessoryRepository();

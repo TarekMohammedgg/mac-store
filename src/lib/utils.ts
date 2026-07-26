@@ -33,7 +33,10 @@ export function fromDateInputValue(value: string): string {
 export function safeNumber(value: unknown, fallback = 0): number {
   if (typeof value === 'number' && !Number.isNaN(value)) return value;
   if (typeof value === 'string') {
-    const parsed = Number(value);
+    const trimmed = value.trim();
+    // Number('') === 0; blank filter fields must use the fallback instead.
+    if (!trimmed) return fallback;
+    const parsed = Number(trimmed);
     if (!Number.isNaN(parsed)) return parsed;
   }
   return fallback;

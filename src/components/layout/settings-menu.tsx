@@ -23,7 +23,7 @@ export function SettingsMenu() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t('common.search')}>
+        <Button variant="ghost" size="icon" aria-label={t('nav.settings')}>
           <Palette className="h-4 w-4" />
         </Button>
       </PopoverTrigger>

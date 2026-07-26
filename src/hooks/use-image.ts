@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { subscribeDataRefresh } from '@/lib/data-refresh';
 import { repositories } from '@/repositories';
 import type { ImageMeta } from '@/models/image';
 
@@ -11,8 +12,17 @@ interface UseImageResult {
   error: string | null;
 }
 
-// Module-level cache: a single object URL per imageId shared across all consumers.
+// Module-level cache: a single URL meta per imageId shared across all consumers.
 const urlCache = new Map<string, ImageMeta>();
+
+export function clearImageUrlCache(imageId?: string): void {
+  if (imageId) urlCache.delete(imageId);
+  else urlCache.clear();
+}
+
+if (typeof window !== 'undefined') {
+  subscribeDataRefresh(() => clearImageUrlCache());
+}
 
 function acquireMeta(imageId: string): Promise<ImageMeta | null> {
   const cached = urlCache.get(imageId);
@@ -31,16 +41,13 @@ export function useImage(imageId: string | null | undefined): UseImageResult {
   );
   const [loading, setLoading] = useState<boolean>(Boolean(imageId));
   const [error, setError] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(() => subscribeDataRefresh(() => setRefreshTick((n) => n + 1)), []);
 
   useEffect(() => {
     if (!imageId) {
       setMeta(null);
-      setLoading(false);
-      return;
-    }
-    const cached = urlCache.get(imageId);
-    if (cached) {
-      setMeta(cached);
       setLoading(false);
       return;
     }
@@ -63,7 +70,7 @@ export function useImage(imageId: string | null | undefined): UseImageResult {
     return () => {
       cancelled = true;
     };
-  }, [imageId]);
+  }, [imageId, refreshTick]);
 
   return { meta, loading, error };
 }

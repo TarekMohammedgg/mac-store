@@ -1,23 +1,52 @@
 'use client';
 
-import { getDb } from '@/lib/db';
+import { notifyDataRefresh } from '@/lib/data-refresh';
+import { supabase } from '@/lib/supabase/client';
+import { throwIfSupabaseError } from '@/lib/supabase/errors';
+import type { ImageRow } from '@/lib/supabase/mappers';
+import {
+  deleteProductImage,
+  getProductImagePublicUrl,
+  uploadProductImageWebp,
+} from '@/lib/supabase/storage';
 import { generateId, toIsoString } from '@/lib/utils';
 import type { ImageInput, ImageMeta, StoredImage } from '@/models/image';
 
 import type { ImageRepository } from './image-repository.types';
 
-class DexieImageRepository implements ImageRepository {
+function mapImage(row: ImageRow): StoredImage {
+  return {
+    id: row.id,
+    blob: new Blob(),
+    filename: row.filename,
+    mimeType: row.mime_type,
+    size: row.size,
+    createdAt: row.created_at,
+    publicUrl: getProductImagePublicUrl(row.storage_path, row.size ?? row.created_at),
+    storagePath: row.storage_path,
+  };
+}
+
+class SupabaseImageRepository implements ImageRepository {
   async save(input: ImageInput): Promise<StoredImage> {
-    const db = getDb();
-    const record: StoredImage = {
-      id: generateId('img'),
+    const id = generateId('img');
+    const filename = input.filename.replace(/\.[^.]+$/, '') + '.webp';
+    const uploaded = await uploadProductImageWebp({
+      id,
       blob: input.blob,
-      filename: input.filename,
-      mimeType: input.blob.type || 'application/octet-stream',
-      size: input.blob.size,
+      filename,
+    });
+    const record: StoredImage = {
+      id,
+      blob: input.blob,
+      filename,
+      mimeType: 'image/webp',
+      size: uploaded.size,
       createdAt: toIsoString(new Date()),
+      publicUrl: uploaded.publicUrl,
+      storagePath: uploaded.storagePath,
     };
-    await db.images.put(record);
+    notifyDataRefresh();
     return record;
   }
 
@@ -30,19 +59,21 @@ class DexieImageRepository implements ImageRepository {
   }
 
   async findById(id: string): Promise<StoredImage | null> {
-    const db = getDb();
-    const record = await db.images.get(id);
-    return record ?? null;
+    const { data, error } = await supabase.from('images').select('*').eq('id', id).maybeSingle();
+    throwIfSupabaseError(error);
+    return data ? mapImage(data as ImageRow) : null;
   }
 
   async delete(id: string): Promise<void> {
-    const db = getDb();
-    await db.images.delete(id);
+    await deleteProductImage(id);
+    notifyDataRefresh();
   }
 
   async deleteMany(ids: string[]): Promise<void> {
-    const db = getDb();
-    await db.images.bulkDelete(ids);
+    for (const id of ids) {
+      await deleteProductImage(id);
+    }
+    notifyDataRefresh();
   }
 
   async toMeta(image: StoredImage): Promise<ImageMeta> {
@@ -51,7 +82,11 @@ class DexieImageRepository implements ImageRepository {
       filename: image.filename,
       mimeType: image.mimeType,
       size: image.size,
-      url: URL.createObjectURL(image.blob),
+      url:
+        image.publicUrl ??
+        (image.storagePath
+          ? getProductImagePublicUrl(image.storagePath, image.size)
+          : URL.createObjectURL(image.blob)),
     };
   }
 
@@ -60,4 +95,4 @@ class DexieImageRepository implements ImageRepository {
   }
 }
 
-export const imageRepository: ImageRepository = new DexieImageRepository();
+export const imageRepository: ImageRepository = new SupabaseImageRepository();

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { compressImageToWebp } from '@/lib/image-webp';
 import { generateId } from '@/lib/utils';
 
 export interface LocalImagePreview {
@@ -45,24 +46,22 @@ export function useLocalImageList(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const add = React.useCallback(
-    async (file: File) => {
-      const url = URL.createObjectURL(file);
-      const localId = generateId('tmp');
-      setItems((prev) => {
-        const next: LocalImagePreview = {
-          localId,
-          blob: file,
-          filename: file.name,
-          url,
-          isCover: prev.length === 0,
-          existingId: null,
-        };
-        return [...prev, next];
-      });
-    },
-    [],
-  );
+  const add = React.useCallback(async (file: File) => {
+    const compressed = await compressImageToWebp(file);
+    const url = URL.createObjectURL(compressed.blob);
+    const localId = generateId('tmp');
+    setItems((prev) => {
+      const next: LocalImagePreview = {
+        localId,
+        blob: compressed.blob,
+        filename: compressed.filename,
+        url,
+        isCover: prev.length === 0,
+        existingId: null,
+      };
+      return [...prev, next];
+    });
+  }, []);
 
   const remove = React.useCallback((localId: string) => {
     setItems((prev) => {
@@ -114,7 +113,7 @@ export function useLocalImageList(
 export function buildInitialImages(
   coverImageId: string | null,
   imageIds: string[],
-  blobs: Map<string, { blob: Blob; filename: string }>,
+  blobs: Map<string, { blob: Blob; filename: string; publicUrl?: string }>,
 ): LocalImagePreview[] {
   const ordered = [coverImageId, ...imageIds].filter(
     (id): id is string => typeof id === 'string' && id.length > 0,
@@ -126,7 +125,7 @@ export function buildInitialImages(
     seen.add(id);
     const data = blobs.get(id);
     if (!data) continue;
-    const url = URL.createObjectURL(data.blob);
+    const url = data.publicUrl ?? URL.createObjectURL(data.blob);
     result.push({
       localId: generateId('tmp'),
       blob: data.blob,

@@ -2,17 +2,16 @@
 
 import * as React from 'react';
 
-import { useAuthStore } from '@/stores/auth.store';
+import { rehydrateAuthStore } from '@/stores/auth.store';
+import { useSettingsStore } from '@/stores/settings.store';
 
 export function AuthBootstrap({ children }: { children: React.ReactNode }) {
-  const initialize = useAuthStore((state) => state.initialize);
-  const initialized = useAuthStore((state) => state.initialized);
+  const hydrateSettings = useSettingsStore((state) => state.hydrate);
 
   React.useEffect(() => {
-    if (!initialized) {
-      void initialize();
-    }
-  }, [initialize, initialized]);
+    void rehydrateAuthStore();
+    void hydrateSettings();
+  }, [hydrateSettings]);
 
   return <>{children}</>;
 }

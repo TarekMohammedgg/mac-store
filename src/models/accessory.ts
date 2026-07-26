@@ -10,6 +10,7 @@ export interface Accessory {
   coverImageId: string | null;
   imageIds: string[];
   availability: boolean;
+  costPrice: number | null;
   createdAt: string;
   updatedAt: string;
 }

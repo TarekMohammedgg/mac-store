@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { subscribeDataRefresh } from '@/lib/data-refresh';
+import { clearImageUrlCache } from '@/hooks/use-image';
 import { repositories } from '@/repositories';
 import type { ImageMeta } from '@/models/image';
 
@@ -45,8 +47,21 @@ export function useImageList(imageIds: string[]): UseImageListResult {
     }
     return initial;
   });
-  const [loading, setLoading] = useState<boolean>(imageIds.length > 0 && metas.length < imageIds.length);
+  const [loading, setLoading] = useState<boolean>(
+    imageIds.length > 0 && metas.length < imageIds.length,
+  );
   const [error, setError] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
+
+  useEffect(
+    () =>
+      subscribeDataRefresh(() => {
+        clearImageUrlCache();
+        urlCache.clear();
+        setRefreshTick((n) => n + 1);
+      }),
+    [],
+  );
 
   useEffect(() => {
     if (imageIds.length === 0) {
@@ -56,6 +71,7 @@ export function useImageList(imageIds: string[]): UseImageListResult {
     }
     let cancelled = false;
     setError(null);
+    setLoading(true);
     resolveAll(imageIds)
       .then((resolved) => {
         if (!cancelled) setMetas(resolved);
@@ -72,7 +88,7 @@ export function useImageList(imageIds: string[]): UseImageListResult {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, refreshTick]);
 
   return { metas, loading, error };
 }

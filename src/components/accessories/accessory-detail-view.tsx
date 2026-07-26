@@ -3,10 +3,10 @@
 import * as React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Package } from 'lucide-react';
 
 import { LazyImageGallery } from '@/components/shared/lazy-image-gallery';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useI18n } from '@/i18n';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { Badge } from '@/components/ui/badge';
@@ -14,20 +14,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { AccessoryCard } from '@/components/accessories/accessory-card';
-import { getDb } from '@/lib/db';
 import { formatPrice } from '@/lib/format';
+import { accessoryService } from '@/services/accessory.service';
 
 export function AccessoryDetailView({ id }: { id: string }) {
   const { t } = useI18n();
   const labels = useLocalizedLabels();
-  const accessory = useLiveQuery(async () => (await getDb().accessories.get(id)) ?? null, [id]);
-  const related = useLiveQuery(async () => {
-    if (!accessory) return [];
-    const all = await getDb().accessories.toArray();
-    return all
-      .filter((a) => a.id !== accessory.id && a.category === accessory.category)
-      .slice(0, 4);
-  }, [accessory?.id, accessory?.category]);
+  const accessory = useCachedLiveQuery(
+    `accessory-detail-${id}`,
+    async () => accessoryService.findById(id),
+    [id],
+  );
+  const related = useCachedLiveQuery(
+    `accessory-related-${id}-${accessory?.category ?? ''}`,
+    async () => {
+      if (!accessory) return [];
+      const all = await accessoryService.search({ category: accessory.category });
+      return all.filter((a) => a.id !== accessory.id).slice(0, 4);
+    },
+    [accessory?.id, accessory?.category],
+  );
 
   if (accessory === undefined) {
     return (

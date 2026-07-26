@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 
 import { useI18n } from '@/i18n';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { ProductCard } from '@/components/products/product-card';
 import { ProductGridSkeleton } from '@/components/shared/skeletons';
 import {
@@ -14,8 +14,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { getDb } from '@/lib/db';
+import { productService } from '@/services/product.service';
 import { safeNumber } from '@/lib/utils';
+import { matchesCpuFilter } from '@/lib/constants';
 import type { Product } from '@/models/product';
 
 import { ProductFiltersBar, useProductFilters } from './product-filters';
@@ -43,7 +44,7 @@ function matches(product: Product, filters: ReturnType<typeof useProductFilters>
   if (filters.category !== 'all' && product.category !== filters.category) return false;
   if (filters.condition !== 'all' && product.condition !== filters.condition) return false;
   if (filters.availability !== 'all' && product.availability !== filters.availability) return false;
-  if (filters.cpu && product.cpu.toLowerCase() !== filters.cpu.toLowerCase()) return false;
+  if (filters.cpu && !matchesCpuFilter(product.cpu, filters.cpu)) return false;
   const minPrice = safeNumber(filters.minPrice, NaN);
   const maxPrice = safeNumber(filters.maxPrice, NaN);
   if (!Number.isNaN(minPrice) && product.price < minPrice) return false;
@@ -81,8 +82,12 @@ export function ProductExplorer() {
   const { t } = useI18n();
   const { filters, setFilters, reset } = useProductFilters();
   const deferredQuery = React.useDeferredValue(filters.query);
-  const products = useLiveQuery(
-    async () => (await getDb().products.toArray()).filter((p) => p.availability !== 'sold'),
+  const products = useCachedLiveQuery(
+    'public-products',
+    async () => {
+      const result = await productService.search({ onlyAvailable: false });
+      return result.filter((p) => p.availability !== 'sold');
+    },
     [],
   );
 

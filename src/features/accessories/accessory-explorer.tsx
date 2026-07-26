@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 
 import { useI18n } from '@/i18n';
 import { AccessoryCard } from '@/components/accessories/accessory-card';
@@ -14,7 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { getDb } from '@/lib/db';
+import { accessoryService } from '@/services/accessory.service';
 import { safeNumber } from '@/lib/utils';
 import type { Accessory } from '@/models/accessory';
 
@@ -66,7 +66,11 @@ export function AccessoryExplorer() {
   const { t } = useI18n();
   const { filters, setFilters, reset } = useAccessoryFilters();
   const deferredQuery = React.useDeferredValue(filters.query);
-  const accessories = useLiveQuery(async () => getDb().accessories.toArray(), []);
+  const accessories = useCachedLiveQuery(
+    'public-accessories',
+    async () => accessoryService.search({}),
+    [],
+  );
 
   const effectiveFilters = React.useMemo(
     () => ({ ...filters, query: deferredQuery }),

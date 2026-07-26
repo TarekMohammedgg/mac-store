@@ -58,11 +58,15 @@ export function AccessoryForm({ accessory, onSuccess, onCancel }: AccessoryFormP
     );
     const unique = Array.from(new Set(ids));
     (async () => {
-      const map = new Map<string, { blob: Blob; filename: string }>();
+      const map = new Map<string, { blob: Blob; filename: string; publicUrl?: string }>();
       for (const id of unique) {
         const stored = await repositories.imageRepository.findById(id);
         if (stored) {
-          map.set(id, { blob: stored.blob, filename: stored.filename });
+          map.set(id, {
+            blob: stored.blob,
+            filename: stored.filename,
+            publicUrl: stored.publicUrl,
+          });
         }
       }
       if (cancelled) return;
@@ -111,6 +115,7 @@ export function AccessoryForm({ accessory, onSuccess, onCancel }: AccessoryFormP
         price: values.price,
         description: values.description ?? '',
         availability: values.availability,
+        costPrice: accessory?.costPrice ?? null,
       };
 
       if (accessory) {

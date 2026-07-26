@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ACCESSORY_CATEGORIES, type AccessoryCategory } from '@/lib/accessory-constants';
+import { ACCESSORY_PRICE_FILTER_OPTIONS } from '@/lib/constants';
+import { formatPrice } from '@/lib/format';
 
 export interface AccessoryFilters {
   query: string;
@@ -112,9 +114,20 @@ interface AccessoryFiltersBarProps {
 }
 
 export function AccessoryFiltersBar({ filters, onChange, onReset }: AccessoryFiltersBarProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const labels = useLocalizedLabels();
   const active = countActiveFilters(filters);
+  const priceLocale = locale === 'ar' ? 'ar-EG' : 'en-EG';
+
+  const priceOptions = React.useMemo(() => {
+    const values = new Set<number>(ACCESSORY_PRICE_FILTER_OPTIONS);
+    for (const raw of [filters.minPrice, filters.maxPrice]) {
+      const n = Number(raw);
+      if (raw && Number.isFinite(n) && n > 0) values.add(n);
+    }
+    return Array.from(values).sort((a, b) => a - b);
+  }, [filters.minPrice, filters.maxPrice]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -166,20 +179,42 @@ export function AccessoryFiltersBar({ filters, onChange, onReset }: AccessoryFil
             ))}
           </SelectContent>
         </Select>
-        <Input
-          value={filters.minPrice}
-          onChange={(event) => onChange({ minPrice: event.target.value, page: 1 })}
-          placeholder={t('accessories.filters.minPrice')}
-          inputMode="numeric"
-          aria-label={t('accessories.filters.minPrice')}
-        />
-        <Input
-          value={filters.maxPrice}
-          onChange={(event) => onChange({ maxPrice: event.target.value, page: 1 })}
-          placeholder={t('accessories.filters.maxPrice')}
-          inputMode="numeric"
-          aria-label={t('accessories.filters.maxPrice')}
-        />
+        <Select
+          value={filters.minPrice || 'all'}
+          onValueChange={(value) =>
+            onChange({ minPrice: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('accessories.filters.minPrice')}>
+            <SelectValue placeholder={t('accessories.filters.minPrice')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('accessories.filters.anyMinPrice')}</SelectItem>
+            {priceOptions.map((price) => (
+              <SelectItem key={`min-${price}`} value={String(price)}>
+                {formatPrice(price, 'EGP', priceLocale)}+
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.maxPrice || 'all'}
+          onValueChange={(value) =>
+            onChange({ maxPrice: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('accessories.filters.maxPrice')}>
+            <SelectValue placeholder={t('accessories.filters.maxPrice')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('accessories.filters.anyMaxPrice')}</SelectItem>
+            {priceOptions.map((price) => (
+              <SelectItem key={`max-${price}`} value={String(price)}>
+                {formatPrice(price, 'EGP', priceLocale)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <label className="flex h-10 cursor-pointer items-center gap-2 rounded-md border bg-background px-3 text-sm">
           <input
             type="checkbox"

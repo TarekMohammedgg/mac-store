@@ -6,6 +6,10 @@ class SettingsService {
     return repositories.settingsRepository.get();
   }
 
+  ensureSeeded() {
+    return repositories.settingsRepository.ensureSeeded();
+  }
+
   update(data: Partial<Omit<AppSettings, 'id' | 'updatedAt'>>) {
     return repositories.settingsRepository.update(data);
   }

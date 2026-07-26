@@ -16,10 +16,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { formatPrice } from '@/lib/format';
 import {
   AVAILABILITY_OPTIONS,
   CONDITIONS,
   PRODUCT_CATEGORIES,
+  PRODUCT_CPU_FILTER_OPTIONS,
+  PRODUCT_PRICE_FILTER_OPTIONS,
+  PRODUCT_RAM_FILTER_OPTIONS,
+  PRODUCT_STORAGE_FILTER_OPTIONS,
+  formatRamFilterLabel,
+  formatStorageFilterLabel,
   type Availability,
   type Condition,
   type ProductCategory,
@@ -130,9 +137,19 @@ interface ProductFiltersBarProps {
 }
 
 export function ProductFiltersBar({ filters, onChange, onReset }: ProductFiltersBarProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const labels = useLocalizedLabels();
   const activeCount = countActiveFilters(filters);
+  const priceLocale = locale === 'ar' ? 'ar-EG' : 'en-EG';
+
+  const priceOptions = React.useMemo(() => {
+    const values = new Set<number>(PRODUCT_PRICE_FILTER_OPTIONS);
+    for (const raw of [filters.minPrice, filters.maxPrice]) {
+      const n = Number(raw);
+      if (raw && Number.isFinite(n) && n > 0) values.add(n);
+    }
+    return Array.from(values).sort((a, b) => a - b);
+  }, [filters.minPrice, filters.maxPrice]);
 
   return (
     <div className="space-y-4">
@@ -224,43 +241,99 @@ export function ProductFiltersBar({ filters, onChange, onReset }: ProductFilters
           </SelectContent>
         </Select>
 
-        <Input
-          value={filters.cpu}
-          onChange={(event) => onChange({ cpu: event.target.value, page: 1 })}
-          placeholder={t('products.filters.cpu')}
-          aria-label={t('products.filters.cpu')}
-        />
+        <Select
+          value={filters.cpu || 'all'}
+          onValueChange={(value) =>
+            onChange({ cpu: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('products.filters.cpu')}>
+            <SelectValue placeholder={t('products.filters.cpu')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('products.filters.anyCpu')}</SelectItem>
+            {PRODUCT_CPU_FILTER_OPTIONS.map((cpu) => (
+              <SelectItem key={cpu} value={cpu}>
+                {cpu}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Input
-          value={filters.minPrice}
-          onChange={(event) => onChange({ minPrice: event.target.value, page: 1 })}
-          placeholder={t('products.filters.minPrice')}
-          inputMode="numeric"
-          aria-label={t('products.filters.minPrice')}
-        />
-        <Input
-          value={filters.maxPrice}
-          onChange={(event) => onChange({ maxPrice: event.target.value, page: 1 })}
-          placeholder={t('products.filters.maxPrice')}
-          inputMode="numeric"
-          aria-label={t('products.filters.maxPrice')}
-        />
-        <Input
-          value={filters.minRam}
-          onChange={(event) => onChange({ minRam: event.target.value, page: 1 })}
-          placeholder={t('products.filters.minRam')}
-          inputMode="numeric"
-          aria-label={t('products.filters.minRam')}
-        />
-        <Input
-          value={filters.minStorage}
-          onChange={(event) => onChange({ minStorage: event.target.value, page: 1 })}
-          placeholder={t('products.filters.minStorage')}
-          inputMode="numeric"
-          aria-label={t('products.filters.minStorage')}
-        />
+        <Select
+          value={filters.minPrice || 'all'}
+          onValueChange={(value) =>
+            onChange({ minPrice: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('products.filters.minPrice')}>
+            <SelectValue placeholder={t('products.filters.minPrice')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('products.filters.anyMinPrice')}</SelectItem>
+            {priceOptions.map((price) => (
+              <SelectItem key={`min-${price}`} value={String(price)}>
+                {formatPrice(price, 'EGP', priceLocale)}+
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.maxPrice || 'all'}
+          onValueChange={(value) =>
+            onChange({ maxPrice: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('products.filters.maxPrice')}>
+            <SelectValue placeholder={t('products.filters.maxPrice')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('products.filters.anyMaxPrice')}</SelectItem>
+            {priceOptions.map((price) => (
+              <SelectItem key={`max-${price}`} value={String(price)}>
+                {formatPrice(price, 'EGP', priceLocale)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.minRam || 'all'}
+          onValueChange={(value) =>
+            onChange({ minRam: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('products.filters.minRam')}>
+            <SelectValue placeholder={t('products.filters.minRam')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('products.filters.anyRam')}</SelectItem>
+            {PRODUCT_RAM_FILTER_OPTIONS.map((ram) => (
+              <SelectItem key={ram} value={String(ram)}>
+                {formatRamFilterLabel(ram)}+
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.minStorage || 'all'}
+          onValueChange={(value) =>
+            onChange({ minStorage: value === 'all' ? '' : value, page: 1 })
+          }
+        >
+          <SelectTrigger aria-label={t('products.filters.minStorage')}>
+            <SelectValue placeholder={t('products.filters.minStorage')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('products.filters.anyStorage')}</SelectItem>
+            {PRODUCT_STORAGE_FILTER_OPTIONS.map((storage) => (
+              <SelectItem key={storage} value={String(storage)}>
+                {formatStorageFilterLabel(storage)}+
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {activeCount > 0 && (

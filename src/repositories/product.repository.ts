@@ -3,10 +3,14 @@
 import {
   AVAILABILITY_OPTIONS,
   PRODUCT_CATEGORIES,
+  matchesCpuFilter,
   type Availability,
   type ProductCategory,
 } from '@/lib/constants';
-import { getDb } from '@/lib/db';
+import { notifyDataRefresh } from '@/lib/data-refresh';
+import { mapProduct, toProductRow, type ProductRow } from '@/lib/supabase/mappers';
+import { supabase } from '@/lib/supabase/client';
+import { throwIfSupabaseError } from '@/lib/supabase/errors';
 import { generateId, toIsoString } from '@/lib/utils';
 import type { Product, ProductCreate, ProductUpdate } from '@/models/product';
 
@@ -16,6 +20,7 @@ import type {
   ProductRepository,
   ProductSearchParams,
 } from './product-repository.types';
+import { imageRepository } from './image.repository';
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -43,7 +48,7 @@ function matchesSearch(product: Product, params: ProductSearchParams): boolean {
     return false;
   if (params.availability && params.availability !== 'all' && product.availability !== params.availability)
     return false;
-  if (params.cpu && product.cpu.toLowerCase() !== params.cpu.toLowerCase()) return false;
+  if (params.cpu && !matchesCpuFilter(product.cpu, params.cpu)) return false;
   if (typeof params.minPrice === 'number' && product.price < params.minPrice) return false;
   if (typeof params.maxPrice === 'number' && product.price > params.maxPrice) return false;
   if (typeof params.minRam === 'number' && product.ram < params.minRam) return false;
@@ -76,11 +81,16 @@ function sortItems(items: Product[], sortBy: ProductSearchParams['sortBy']): Pro
   return sorted;
 }
 
-class DexieProductRepository implements ProductRepository {
+async function fetchAllProducts(): Promise<Product[]> {
+  const { data, error } = await supabase.from('products').select('*');
+  throwIfSupabaseError(error);
+  return ((data ?? []) as ProductRow[]).map(mapProduct);
+}
+
+class SupabaseProductRepository implements ProductRepository {
   async list(params: ProductListParams = {}): Promise<PaginatedResult<Product>> {
     const { page = 1, pageSize = DEFAULT_PAGE_SIZE, ...search } = params;
-    const db = getDb();
-    const all = await db.products.toArray();
+    const all = await fetchAllProducts();
     const filtered = all.filter((item) => matchesSearch(item, search));
     const sorted = sortItems(filtered, search.sortBy);
     const total = sorted.length;
@@ -91,19 +101,17 @@ class DexieProductRepository implements ProductRepository {
   }
 
   async search(params: ProductSearchParams): Promise<Product[]> {
-    const db = getDb();
-    const all = await db.products.toArray();
+    const all = await fetchAllProducts();
     return sortItems(all.filter((item) => matchesSearch(item, params)), params.sortBy);
   }
 
   async findById(id: string): Promise<Product | null> {
-    const db = getDb();
-    const record = await db.products.get(id);
-    return record ?? null;
+    const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
+    throwIfSupabaseError(error);
+    return data ? mapProduct(data as ProductRow) : null;
   }
 
   async create(data: ProductCreate): Promise<Product> {
-    const db = getDb();
     const now = toIsoString(new Date());
     const record: Product = {
       ...data,
@@ -111,13 +119,18 @@ class DexieProductRepository implements ProductRepository {
       createdAt: now,
       updatedAt: now,
     };
-    await db.products.put(record);
-    return record;
+    const { data: inserted, error } = await supabase
+      .from('products')
+      .insert(toProductRow(record))
+      .select('*')
+      .single();
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return mapProduct(inserted as ProductRow);
   }
 
   async update(id: string, data: ProductUpdate): Promise<Product> {
-    const db = getDb();
-    const existing = await db.products.get(id);
+    const existing = await this.findById(id);
     if (!existing) throw new Error(`Product ${id} not found`);
     const next: Product = {
       ...existing,
@@ -126,46 +139,45 @@ class DexieProductRepository implements ProductRepository {
       createdAt: existing.createdAt,
       updatedAt: toIsoString(new Date()),
     };
-    await db.products.put(next);
-    return next;
+    const { data: updated, error } = await supabase
+      .from('products')
+      .update(toProductRow(next))
+      .eq('id', id)
+      .select('*')
+      .single();
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return mapProduct(updated as ProductRow);
   }
 
   async delete(id: string): Promise<void> {
-    const db = getDb();
-    const product = await db.products.get(id);
+    const product = await this.findById(id);
     if (!product) return;
-    await db.transaction('rw', db.products, db.images, async () => {
-      await db.products.delete(id);
-      const ids = [product.coverImageId, ...product.imageIds].filter(
-        (value): value is string => typeof value === 'string' && value.length > 0,
-      );
-      if (ids.length > 0) {
-        await db.images.bulkDelete(ids);
-      }
-    });
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    throwIfSupabaseError(error);
+    const ids = [product.coverImageId, ...product.imageIds].filter(
+      (value): value is string => typeof value === 'string' && value.length > 0,
+    );
+    if (ids.length > 0) {
+      await imageRepository.deleteMany(ids);
+    }
+    notifyDataRefresh();
   }
 
   async duplicate(id: string): Promise<Product> {
     const source = await this.findById(id);
     if (!source) throw new Error(`Product ${id} not found`);
     const now = toIsoString(new Date());
-    const clone: Product = {
+    return this.create({
       ...source,
-      id: generateId('prd'),
       serialNumber: `${source.serialNumber}-COPY`,
       inventoryDate: now,
       availability: 'unavailable',
-      createdAt: now,
-      updatedAt: now,
-    };
-    const db = getDb();
-    await db.products.put(clone);
-    return clone;
+    });
   }
 
   async countByAvailability(): Promise<Record<Availability, number>> {
-    const db = getDb();
-    const all = await db.products.toArray();
+    const all = await fetchAllProducts();
     const counts = AVAILABILITY_OPTIONS.reduce(
       (acc, key) => ({ ...acc, [key]: 0 }),
       {} as Record<Availability, number>,
@@ -177,8 +189,7 @@ class DexieProductRepository implements ProductRepository {
   }
 
   async countByCategory(): Promise<Record<ProductCategory, number>> {
-    const db = getDb();
-    const all = await db.products.toArray();
+    const all = await fetchAllProducts();
     const counts = PRODUCT_CATEGORIES.reduce(
       (acc, key) => ({ ...acc, [key]: 0 }),
       {} as Record<ProductCategory, number>,
@@ -190,4 +201,4 @@ class DexieProductRepository implements ProductRepository {
   }
 }
 
-export const productRepository: ProductRepository = new DexieProductRepository();
+export const productRepository: ProductRepository = new SupabaseProductRepository();

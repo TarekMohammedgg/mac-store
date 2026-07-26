@@ -41,6 +41,7 @@ export interface Dictionary {
     signIn: string;
     dashboard: string;
     products: string;
+    analytics: string;
     settings: string;
   };
   home: {
@@ -84,10 +85,15 @@ export interface Dictionary {
       availability: string;
       anyAvailability: string;
       cpu: string;
+      anyCpu: string;
       minPrice: string;
+      anyMinPrice: string;
       maxPrice: string;
+      anyMaxPrice: string;
       minRam: string;
+      anyRam: string;
       minStorage: string;
+      anyStorage: string;
     };
     searchPlaceholder: string;
     activeFilters: (count: number) => string;
@@ -127,7 +133,9 @@ export interface Dictionary {
       category: string;
       allCategories: string;
       minPrice: string;
+      anyMinPrice: string;
       maxPrice: string;
+      anyMaxPrice: string;
       inStockOnly: string;
     };
     searchPlaceholder: string;
@@ -151,10 +159,16 @@ export interface Dictionary {
   login: {
     title: string;
     description: string;
-    username: string;
+    email: string;
     password: string;
     submit: string;
     submitting: string;
+    signUp: string;
+    signingUp: string;
+    signUpTitle: string;
+    signUpDescription: string;
+    noAccount: string;
+    hasAccount: string;
     backLink: string;
     success: string;
     failed: string;
@@ -223,6 +237,42 @@ export interface Dictionary {
     recentAccessories: string;
     recentActivity: string;
     noActivity: string;
+  };
+  analytics: {
+    title: string;
+    hint: string;
+    empty: string;
+    periodDays: (days: number) => string;
+    units: (count: number) => string;
+    kpi: {
+      revenue: string;
+      revenueHint: string;
+      unitsSold: string;
+      unitsSoldHint: string;
+      aov: string;
+      aovHint: (units: number) => string;
+    };
+    charts: {
+      revenueTrend: string;
+      revenueTrendHint: string;
+      topRevenue: string;
+      topRevenueHint: string;
+      topUnits: string;
+      topUnitsHint: string;
+      categoryMix: string;
+      categoryMixHint: string;
+      slowMovers: string;
+      slowMoversHint: string;
+      slowMoversOk: string;
+      recentSales: string;
+      recentSalesHint: string;
+    };
+    columns: {
+      item: string;
+      qty: string;
+      amount: string;
+      when: string;
+    };
   };
   form: {
     addDevice: string;
@@ -405,5 +455,9 @@ export interface Dictionary {
     notFoundDescription: string;
     globalTitle: string;
     globalDescription: string;
+    configTitle: string;
+    configDescription: string;
+    networkTitle: string;
+    networkDescription: string;
   };
 }

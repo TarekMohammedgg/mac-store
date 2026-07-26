@@ -78,11 +78,15 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
     );
     const unique = Array.from(new Set(ids));
     (async () => {
-      const map = new Map<string, { blob: Blob; filename: string }>();
+      const map = new Map<string, { blob: Blob; filename: string; publicUrl?: string }>();
       for (const id of unique) {
         const stored = await repositories.imageRepository.findById(id);
         if (stored) {
-          map.set(id, { blob: stored.blob, filename: stored.filename });
+          map.set(id, {
+            blob: stored.blob,
+            filename: stored.filename,
+            publicUrl: stored.publicUrl,
+          });
         }
       }
       if (cancelled) return;
@@ -140,6 +144,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         inventoryDate: fromDateInputValue(data.inventoryDate),
         internalNotes: data.internalNotes ?? '',
         availability: data.availability,
+        costPrice: product?.costPrice ?? null,
       };
 
       if (product) {

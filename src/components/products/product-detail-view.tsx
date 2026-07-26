@@ -3,10 +3,10 @@
 import * as React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Battery, CheckCircle2, Cpu, HardDrive, MemoryStick } from 'lucide-react';
 
 import { LazyImageGallery } from '@/components/shared/lazy-image-gallery';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useI18n } from '@/i18n';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { Badge } from '@/components/ui/badge';
@@ -14,20 +14,26 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ProductCard } from '@/components/products/product-card';
-import { getDb } from '@/lib/db';
 import { formatPrice, formatRam, formatStorage } from '@/lib/format';
+import { productService } from '@/services/product.service';
 
 export function ProductDetailView({ id }: { id: string }) {
   const { t } = useI18n();
   const labels = useLocalizedLabels();
-  const product = useLiveQuery(async () => (await getDb().products.get(id)) ?? null, [id]);
-  const related = useLiveQuery(async () => {
-    if (!product) return [];
-    const all = await getDb().products.toArray();
-    return all
-      .filter((p) => p.id !== product.id && p.category === product.category)
-      .slice(0, 4);
-  }, [product?.id, product?.category]);
+  const product = useCachedLiveQuery(
+    `product-detail-${id}`,
+    async () => productService.findById(id),
+    [id],
+  );
+  const related = useCachedLiveQuery(
+    `product-related-${id}-${product?.category ?? ''}`,
+    async () => {
+      if (!product) return [];
+      const all = await productService.search({ category: product.category });
+      return all.filter((p) => p.id !== product.id).slice(0, 4);
+    },
+    [product?.id, product?.category],
+  );
 
   if (product === undefined) {
     return (

@@ -2,13 +2,15 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { Copy, Loader2, Minus, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Copy, Minus, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useI18n } from '@/i18n';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { ImageThumb } from '@/components/shared/image-thumb';
+import { TableSkeleton } from '@/components/shared/skeletons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,33 +34,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getDb } from '@/lib/db';
 import { formatPrice } from '@/lib/format';
 import { accessoryService } from '@/services/accessory.service';
 
 export default function AdminAccessoriesPage() {
+  const router = useRouter();
   const { t } = useI18n();
   const labels = useLocalizedLabels();
   const [query, setQuery] = React.useState('');
-  const accessories = useLiveQuery(async () => getDb().accessories.toArray(), []);
-
-  if (accessories === undefined) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  const filtered = accessories.filter((accessory) => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return true;
-    return (
-      accessory.name.toLowerCase().includes(needle) ||
-      accessory.category.toLowerCase().includes(needle) ||
-      labels.accessoryCategory(accessory.category).toLowerCase().includes(needle)
-    );
-  });
+  const accessories = useCachedLiveQuery(
+    'admin-accessories',
+    async () => accessoryService.search({}),
+    [],
+  );
 
   const handleDelete = async (id: string) => {
     try {
@@ -73,8 +61,7 @@ export default function AdminAccessoriesPage() {
     try {
       const copy = await accessoryService.duplicate(id);
       toast.success(t('toast.accessoryDuplicated'));
-      window.history.pushState({}, '', `/admin/accessories/${copy.id}/edit`);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      router.push(`/admin/accessories/${copy.id}/edit`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('toast.duplicateFailed'));
     }
@@ -87,6 +74,16 @@ export default function AdminAccessoriesPage() {
       toast.error(error instanceof Error ? error.message : t('toast.stockUpdateFailed'));
     }
   };
+
+  const filtered = (accessories ?? []).filter((accessory) => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return true;
+    return (
+      accessory.name.toLowerCase().includes(needle) ||
+      accessory.category.toLowerCase().includes(needle) ||
+      labels.accessoryCategory(accessory.category).toLowerCase().includes(needle)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -115,10 +112,14 @@ export default function AdminAccessoriesPage() {
               />
             </div>
             <div className="text-xs text-muted-foreground">
-              {filtered.length} / {accessories.length}
+              {accessories === undefined ? '…' : `${filtered.length} / ${accessories.length}`}
             </div>
           </div>
-          {filtered.length === 0 ? (
+          {accessories === undefined ? (
+            <div className="p-4">
+              <TableSkeleton rows={6} columns={7} />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="px-6 py-16 text-center text-sm text-muted-foreground">
               {t('admin.empty.noAccessories')}
             </div>

@@ -3,13 +3,13 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { use } from 'react';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 import { useI18n } from '@/i18n';
 import { ProductForm } from '@/components/admin/product-form';
 import { Button } from '@/components/ui/button';
-import { getDb } from '@/lib/db';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
+import { productService } from '@/services/product.service';
 
 interface EditProductPageProps {
   params: Promise<{ id: string }>;
@@ -19,7 +19,11 @@ export default function EditProductPage({ params }: EditProductPageProps) {
   const { id } = use(params);
   const router = useRouter();
   const { t } = useI18n();
-  const product = useLiveQuery(async () => (await getDb().products.get(id)) ?? null, [id]);
+  const product = useCachedLiveQuery(
+    `admin-edit-product-${id}`,
+    async () => productService.findById(id),
+    [id],
+  );
 
   if (product === undefined) {
     return (

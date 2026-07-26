@@ -3,9 +3,9 @@
 import { verifyPassword } from '@/lib/hash';
 import { getDb } from '@/lib/db';
 import { generateId, toIsoString } from '@/lib/utils';
-import type { AdminUser, AuthSession } from '@/models/user';
+import type { AdminUser } from '@/models/user';
 
-import type { AuthRepository } from './auth-repository.types';
+import type { AuthRepository, LocalAuthSession } from './auth-repository.types';
 
 class DexieAuthRepository implements AuthRepository {
   async getUser(): Promise<AdminUser | null> {
@@ -59,7 +59,7 @@ class DexieAuthRepository implements AuthRepository {
     return valid ? user : null;
   }
 
-  async createSession(token: string, user: AdminUser, ttlMs: number): Promise<AuthSession> {
+  async createSession(token: string, user: AdminUser, ttlMs: number): Promise<LocalAuthSession> {
     const db = getDb();
     const now = Date.now();
     const record = {
@@ -72,7 +72,7 @@ class DexieAuthRepository implements AuthRepository {
     return record;
   }
 
-  async getSession(token: string): Promise<AuthSession | null> {
+  async getSession(token: string): Promise<LocalAuthSession | null> {
     const db = getDb();
     const record = await db.authSessions.get(token);
     if (!record) return null;

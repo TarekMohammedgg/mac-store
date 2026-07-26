@@ -1,10 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Apple,
+  ChartColumn,
   LayoutDashboard,
   LogOut,
   Package,
@@ -13,9 +13,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { BrandLogo } from '@/components/brand/brand-logo';
 import { useI18n } from '@/i18n';
 import { useAuthGuard } from '@/hooks/use-auth-guard';
 import { useAuthStore } from '@/stores/auth.store';
+import { useStoreBrandName } from '@/stores/settings.store';
+import { SettingsMenu } from '@/components/layout/settings-menu';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
@@ -29,27 +32,51 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/admin', labelKey: 'nav.dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/analytics', labelKey: 'nav.analytics', icon: ChartColumn },
   { href: '/admin/products', labelKey: 'nav.products', icon: Package },
   { href: '/admin/accessories', labelKey: 'nav.accessories', icon: Plug },
   { href: '/admin/settings', labelKey: 'nav.settings', icon: SettingsIcon },
 ];
 
+function isNavActive(pathname: string, item: NavItem): boolean {
+  return item.exact ? pathname === item.href : pathname.startsWith(item.href);
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { t, dictionary } = useI18n();
-  const { session, isAuthenticated, checking, initialized } = useAuthGuard();
+  const brandName = useStoreBrandName(dictionary.brand.name);
+  const { session, hydrated } = useAuthGuard();
   const logout = useAuthStore((state) => state.logout);
-  const [pathname, setPathname] = React.useState<string>('');
+  const [pendingHref, setPendingHref] = React.useState<string | null>(null);
+
+  const activePath = pendingHref ?? pathname;
 
   React.useEffect(() => {
-    setPathname(window.location.pathname);
+    setPendingHref(null);
+  }, [pathname]);
+
+  React.useEffect(() => {
+    useAuthStore.setState({ loading: false });
   }, []);
 
   React.useEffect(() => {
-    if (initialized && !isAuthenticated) {
-      router.replace('/login');
+    for (const item of NAV_ITEMS) {
+      router.prefetch(item.href);
     }
-  }, [initialized, isAuthenticated, router]);
+  }, [router]);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
+    if (!session) {
+      router.replace('/login?next=/admin');
+      return;
+    }
+    if (session.role !== 'admin') {
+      router.replace('/');
+    }
+  }, [hydrated, session, router]);
 
   const handleLogout = async () => {
     await logout();
@@ -57,12 +84,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     router.replace('/login');
   };
 
-  if (checking || !initialized || !isAuthenticated || !session) {
+  if (!hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         {t('common.loading')}
       </div>
     );
+  }
+
+  if (!session || session.role !== 'admin') {
+    return null;
   }
 
   return (
@@ -71,20 +102,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-full flex-col">
           <Link
             href="/"
-            className="flex h-16 items-center gap-2 border-b px-5 font-semibold tracking-tight"
+            className="flex h-16 items-center gap-2.5 border-b px-5 font-semibold tracking-tight"
           >
-            <Apple className="h-5 w-5" /> {dictionary.brand.name}
+            <BrandLogo size="md" priority />
+            <span className="truncate">{brandName}</span>
           </Link>
           <nav className="flex-1 space-y-1 p-3" aria-label="Admin">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
-              const active = item.exact
-                ? pathname === item.href
-                : pathname?.startsWith(item.href);
+              const active = isNavActive(activePath, item);
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
+                  onClick={() => setPendingHref(item.href)}
                   className={cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                     active
@@ -112,17 +144,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <Link
               href="/admin"
-              className="flex items-center gap-2 font-semibold tracking-tight lg:hidden"
+              className="flex items-center gap-2.5 font-semibold tracking-tight lg:hidden"
             >
-              <Apple className="h-5 w-5" /> {dictionary.brand.name}
+              <BrandLogo size="md" />
+              <span className="truncate">{brandName}</span>
             </Link>
             <div className="hidden lg:block">
               <h1 className="text-sm text-muted-foreground">{t('nav.admin')}</h1>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" /> {t('nav.signOut')}
-          </Button>
+          <div className="flex items-center gap-1">
+            <SettingsMenu />
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" /> {t('nav.signOut')}
+            </Button>
+          </div>
         </header>
         <nav
           className="flex items-center gap-1 overflow-x-auto border-b bg-background px-4 py-2 lg:hidden"
@@ -130,13 +166,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
-            const active = item.exact
-              ? pathname === item.href
-              : pathname?.startsWith(item.href);
+            const active = isNavActive(activePath, item);
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch
+                onClick={() => setPendingHref(item.href)}
                 className={cn(
                   'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap',
                   active

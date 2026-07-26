@@ -1,34 +1,51 @@
 'use client';
 
 import { APP_NAME, APP_DESCRIPTION, DEFAULT_CURRENCY } from '@/config/app.config';
-import { getDb } from '@/lib/db';
+import { notifyDataRefresh } from '@/lib/data-refresh';
+import { mapSettings, toSettingsRow, type SettingsRow } from '@/lib/supabase/mappers';
+import { supabase } from '@/lib/supabase/client';
+import { throwIfSupabaseError } from '@/lib/supabase/errors';
 import { toIsoString } from '@/lib/utils';
 import type { AppSettings } from '@/models/settings';
 
 import type { SettingsRepository } from './settings-repository.types';
 
-const DEFAULT_SETTINGS: AppSettings = {
-  id: 'app',
-  storeName: APP_NAME,
-  storeDescription: APP_DESCRIPTION,
-  contactEmail: 'contact@macstore.local',
-  currency: DEFAULT_CURRENCY,
-  showSerialNumber: false,
-  defaultAdminUsername: process.env.NEXT_PUBLIC_DEFAULT_ADMIN_USERNAME ?? 'admin',
-  updatedAt: toIsoString(new Date()),
-};
+function createDefaultSettings(): AppSettings {
+  return {
+    id: 'app',
+    storeName: APP_NAME,
+    storeDescription: APP_DESCRIPTION,
+    contactEmail: 'contact@macstore.local',
+    currency: DEFAULT_CURRENCY,
+    showSerialNumber: false,
+    defaultAdminUsername: process.env.NEXT_PUBLIC_DEFAULT_ADMIN_USERNAME ?? 'admin',
+    updatedAt: toIsoString(new Date()),
+  };
+}
 
-class DexieSettingsRepository implements SettingsRepository {
+class SupabaseSettingsRepository implements SettingsRepository {
   async get(): Promise<AppSettings> {
-    const db = getDb();
-    const existing = await db.settings.get('app');
-    if (existing) return existing;
-    await db.settings.put(DEFAULT_SETTINGS);
-    return DEFAULT_SETTINGS;
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('*')
+      .eq('id', 'app')
+      .maybeSingle();
+    throwIfSupabaseError(error);
+    return data ? mapSettings(data as SettingsRow) : createDefaultSettings();
+  }
+
+  async ensureSeeded(): Promise<AppSettings> {
+    const existing = await this.get();
+    const { data } = await supabase.from('app_settings').select('id').eq('id', 'app').maybeSingle();
+    if (data) return existing;
+    const next = createDefaultSettings();
+    const { error } = await supabase.from('app_settings').upsert(toSettingsRow(next));
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return next;
   }
 
   async update(data: Partial<Omit<AppSettings, 'id' | 'updatedAt'>>): Promise<AppSettings> {
-    const db = getDb();
     const current = await this.get();
     const next: AppSettings = {
       ...current,
@@ -36,16 +53,19 @@ class DexieSettingsRepository implements SettingsRepository {
       id: 'app',
       updatedAt: toIsoString(new Date()),
     };
-    await db.settings.put(next);
+    const { error } = await supabase.from('app_settings').upsert(toSettingsRow(next));
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
     return next;
   }
 
   async reset(): Promise<AppSettings> {
-    const db = getDb();
-    const next: AppSettings = { ...DEFAULT_SETTINGS, updatedAt: toIsoString(new Date()) };
-    await db.settings.put(next);
+    const next = createDefaultSettings();
+    const { error } = await supabase.from('app_settings').upsert(toSettingsRow(next));
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
     return next;
   }
 }
 
-export const settingsRepository: SettingsRepository = new DexieSettingsRepository();
+export const settingsRepository: SettingsRepository = new SupabaseSettingsRepository();

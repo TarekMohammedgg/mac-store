@@ -30,6 +30,7 @@ export interface Product {
   availability: Availability;
   coverImageId: string | null;
   imageIds: string[];
+  costPrice: number | null;
   createdAt: string;
   updatedAt: string;
 }

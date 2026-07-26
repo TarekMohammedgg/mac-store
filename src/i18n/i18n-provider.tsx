@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/config/locale.config';
 
@@ -125,9 +124,7 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
-  const router = useRouter();
   const [locale, setLocaleState] = React.useState<Locale>(initialLocale ?? DEFAULT_LOCALE);
-  const [, startTransition] = React.useTransition();
 
   React.useEffect(() => {
     const stored = readCookie(COOKIE_NAME);
@@ -140,17 +137,11 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
     applyDocumentLocale(locale);
   }, [locale]);
 
-  const setLocale = React.useCallback(
-    (next: Locale) => {
-      setLocaleState(next);
-      writeCookie(COOKIE_NAME, next);
-      applyDocumentLocale(next);
-      startTransition(() => {
-        router.refresh();
-      });
-    },
-    [router],
-  );
+  const setLocale = React.useCallback((next: Locale) => {
+    setLocaleState(next);
+    writeCookie(COOKIE_NAME, next);
+    applyDocumentLocale(next);
+  }, []);
 
   const dictionary = dictionaries[locale] ?? DEFAULT_DICTIONARY;
   const t = React.useMemo(() => buildT(dictionary), [dictionary]);

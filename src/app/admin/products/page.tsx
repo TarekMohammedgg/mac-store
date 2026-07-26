@@ -2,13 +2,15 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { Copy, Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useI18n } from '@/i18n';
+import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { ImageThumb } from '@/components/shared/image-thumb';
+import { TableSkeleton } from '@/components/shared/skeletons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,34 +34,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getDb } from '@/lib/db';
 import { formatPrice } from '@/lib/format';
 import { productService } from '@/services/product.service';
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const { t } = useI18n();
   const labels = useLocalizedLabels();
   const [query, setQuery] = React.useState('');
-  const products = useLiveQuery(async () => (await getDb().products.toArray()), []);
-
-  if (products === undefined) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  const filtered = products.filter((product) => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return true;
-    return (
-      product.model.toLowerCase().includes(needle) ||
-      product.serialNumber.toLowerCase().includes(needle) ||
-      product.cpu.toLowerCase().includes(needle) ||
-      labels.productCategory(product.category).toLowerCase().includes(needle)
-    );
-  });
+  const products = useCachedLiveQuery(
+    'admin-products',
+    async () => productService.search({}),
+    [],
+  );
 
   const handleDelete = async (id: string) => {
     try {
@@ -74,12 +61,22 @@ export default function AdminProductsPage() {
     try {
       const copy = await productService.duplicate(id);
       toast.success(t('toast.deviceDuplicated'));
-      window.history.pushState({}, '', `/admin/products/${copy.id}/edit`);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+      router.push(`/admin/products/${copy.id}/edit`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('toast.duplicateFailed'));
     }
   };
+
+  const filtered = (products ?? []).filter((product) => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return true;
+    return (
+      product.model.toLowerCase().includes(needle) ||
+      product.serialNumber.toLowerCase().includes(needle) ||
+      product.cpu.toLowerCase().includes(needle) ||
+      labels.productCategory(product.category).toLowerCase().includes(needle)
+    );
+  });
 
   return (
     <div className="space-y-6">
@@ -108,10 +105,14 @@ export default function AdminProductsPage() {
               />
             </div>
             <div className="text-xs text-muted-foreground">
-              {filtered.length} / {products.length}
+              {products === undefined ? '…' : `${filtered.length} / ${products.length}`}
             </div>
           </div>
-          {filtered.length === 0 ? (
+          {products === undefined ? (
+            <div className="p-4">
+              <TableSkeleton rows={6} columns={7} />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="px-6 py-16 text-center text-sm text-muted-foreground">
               {t('admin.empty.noDevices')}
             </div>
