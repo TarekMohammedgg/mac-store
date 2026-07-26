@@ -22,6 +22,7 @@ export interface Product {
   cycleCount: number | null;
   condition: Condition;
   price: number;
+  quantity: number;
   description: string;
   specifications: ProductSpecifications;
   purchaseDate: string | null;

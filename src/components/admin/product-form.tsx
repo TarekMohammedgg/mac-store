@@ -136,6 +136,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         cycleCount: data.cycleCount ?? null,
         condition: data.condition,
         price: data.price,
+        quantity: data.quantity,
         description: data.description ?? '',
         specifications: Object.fromEntries(
           (data.specifications ?? []).map((spec) => [spec.key, spec.value]),
@@ -247,6 +248,14 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
               required
               type="number"
               placeholder="0"
+            />
+            <TextField
+              control={control}
+              name="quantity"
+              label={t('form.fields.quantity')}
+              required
+              type="number"
+              placeholder="1"
             />
           </CardContent>
         </Card>
@@ -450,6 +459,7 @@ function buildDefaults(product?: Product): ProductFormValues {
     cycleCount: product?.cycleCount ?? undefined,
     condition: product?.condition ?? 'excellent',
     price: product?.price ?? 0,
+    quantity: product?.quantity ?? 1,
     description: product?.description ?? '',
     specifications: product
       ? Object.entries(product.specifications).map(([key, value]) => ({ key, value }))

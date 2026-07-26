@@ -27,11 +27,13 @@ const now = new Date().toISOString();
 const IMAGE = {
   macbookCover: 'img_v2_macbook_pro_cover',
   macbookSide: 'img_v2_macbook_pro_side',
+  macbookAirCover: 'img_v2_macbook_air_cover',
   ipadCover: 'img_v2_ipad_pro_cover',
   iphoneCover: 'img_v2_iphone_pro_cover',
   magicMouse: 'img_v2_magic_mouse',
   usbcCharger: 'img_v2_usbc_charger',
   magicKeyboard: 'img_v2_magic_keyboard',
+  airpods: 'img_v2_airpods',
 };
 
 async function fetchAsWebp(sourceUrl) {
@@ -126,6 +128,12 @@ async function main() {
         'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1400&q=80',
     },
     {
+      id: IMAGE.macbookAirCover,
+      filename: 'macbook-air-m2.webp',
+      source:
+        'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=1400&q=80',
+    },
+    {
       id: IMAGE.ipadCover,
       filename: 'ipad-pro-11.webp',
       source:
@@ -153,6 +161,12 @@ async function main() {
       filename: 'magic-keyboard.webp',
       source:
         'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=1400&q=80',
+    },
+    {
+      id: IMAGE.airpods,
+      filename: 'airpods-pro.webp',
+      source:
+        'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?auto=format&fit=crop&w=1400&q=80',
     },
   ];
 
@@ -195,6 +209,7 @@ async function main() {
       condition: 'excellent',
       price: 64500,
       cost_price: 55000,
+      quantity: 1,
       description:
         'ماك بوك برو 14 إنش بشريحة M3 Pro، حالة ممتازة، لوحة مفاتيح عربي/إنجليزي، شاحن أصلي. مناسب للمونتاج والبرمجة. السعر أقل من الجديد في السوق (M4/M5 يبدأ من حوالي 88–105 ألف جنيه).',
       specifications: {
@@ -227,6 +242,7 @@ async function main() {
       condition: 'like-new',
       price: 48500,
       cost_price: 41000,
+      quantity: 1,
       description:
         'آيباد برو 11 إنش M4، واي فاي فقط، كسر زيرو تقريباً. الجديد في المتاجر المعتمدة يبدأ من حوالي 65 ألف جنيه — هذا السعر للمستخدم بحالة شبه جديدة.',
       specifications: {
@@ -259,6 +275,7 @@ async function main() {
       condition: 'excellent',
       price: 58900,
       cost_price: 51500,
+      quantity: 1,
       description:
         'آيفون 16 برو 256 جيجا، تيتانيوم صحراوي، بطارية 97%، شاشة وخلفية بدون خدوش ظاهرة. سعر الجديد في مصر حوالي 69–75 ألف جنيه (B.TECH / 2B) — هذا مستعمل ممتاز بسعر السوق.',
       specifications: {
@@ -274,6 +291,39 @@ async function main() {
       availability: 'available',
       cover_image_id: IMAGE.iphoneCover,
       image_ids: [IMAGE.iphoneCover],
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      id: 'prd_sample_macbook_air_m2',
+      serial_number: 'C02YQ8FHQ6L4',
+      model: 'MacBook Air 13" (M2, 2022)',
+      category: 'macbook-air',
+      cpu: 'Apple M2',
+      ram: 16,
+      storage: 512,
+      storage_type: 'SSD',
+      battery_health: 91,
+      cycle_count: 142,
+      condition: 'excellent',
+      price: 42500,
+      cost_price: 36000,
+      quantity: 1,
+      description:
+        'ماك بوك اير 13 إنش M2، ذاكرة 16 جيجا وتخزين 512، خفيف ومثالي للدراسة والعمل اليومي. الجديد يبدأ من حوالي 55–65 ألف جنيه — هذا مستعمل ممتاز بسعر أوضح.',
+      specifications: {
+        Year: '2022',
+        Color: 'Midnight',
+        Keyboard: 'Arabic / English',
+        Warranty: 'شهر ضمان محل',
+        Origin: 'مستورد — حالة Grade A',
+      },
+      purchase_date: '2026-04-28',
+      inventory_date: now,
+      internal_notes: 'شاشة بدون ضغط — تم اختبار البطارية',
+      availability: 'available',
+      cover_image_id: IMAGE.macbookAirCover,
+      image_ids: [IMAGE.macbookAirCover],
       created_at: now,
       updated_at: now,
     },
@@ -334,6 +384,21 @@ async function main() {
         'لوحة مفاتيح ماجيك مع لوحة أرقام، تخطيط عربي/إنجليزي. الأسعار في مصر تتراوح تقريباً بين 7,500 و10,700 جنيه حسب الموديل والمورد.',
       cover_image_id: IMAGE.magicKeyboard,
       image_ids: [IMAGE.magicKeyboard],
+      availability: true,
+      created_at: now,
+      updated_at: now,
+    },
+    {
+      id: 'acc_sample_airpods_pro',
+      name: 'AirPods Pro (USB-C) — الجيل الثاني',
+      category: 'audio',
+      quantity: 7,
+      price: 8950,
+      cost_price: 6800,
+      description:
+        'إيربودز برو الجيل الثاني بمنفذ USB-C، عزل ضوضاء ممتاز. متوسط السوق في مصر حوالي 8,500–10,500 جنيه.',
+      cover_image_id: IMAGE.airpods,
+      image_ids: [IMAGE.airpods],
       availability: true,
       created_at: now,
       updated_at: now,

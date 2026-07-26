@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Copy, Minus, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useI18n } from '@/i18n';
@@ -67,6 +67,14 @@ export default function AdminProductsPage() {
     }
   };
 
+  const adjustStock = async (id: string, delta: number) => {
+    try {
+      await productService.adjustQuantity(id, delta);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('toast.stockUpdateFailed'));
+    }
+  };
+
   const filtered = (products ?? []).filter((product) => {
     const needle = query.trim().toLowerCase();
     if (!needle) return true;
@@ -110,7 +118,7 @@ export default function AdminProductsPage() {
           </div>
           {products === undefined ? (
             <div className="p-4">
-              <TableSkeleton rows={6} columns={7} />
+              <TableSkeleton rows={6} columns={8} />
             </div>
           ) : filtered.length === 0 ? (
             <div className="px-6 py-16 text-center text-sm text-muted-foreground">
@@ -124,6 +132,7 @@ export default function AdminProductsPage() {
                   <TableHead>{t('admin.columns.model')}</TableHead>
                   <TableHead>{t('admin.columns.category')}</TableHead>
                   <TableHead>{t('admin.columns.condition')}</TableHead>
+                  <TableHead>{t('admin.columns.stock')}</TableHead>
                   <TableHead>{t('admin.columns.status')}</TableHead>
                   <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
                   <TableHead className="w-32 text-end">{t('admin.columns.actions')}</TableHead>
@@ -148,6 +157,32 @@ export default function AdminProductsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{labels.condition(product.condition)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => adjustStock(product.id, -1)}
+                          aria-label={t('admin.actions.decreaseStock')}
+                          disabled={product.quantity <= 0}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="min-w-8 text-center text-sm font-medium tabular-nums">
+                          {product.quantity}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => adjustStock(product.id, 1)}
+                          aria-label={t('admin.actions.increaseStock')}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge

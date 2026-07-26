@@ -6,6 +6,7 @@ import type {
   AnalyticsInsights,
   CategoryMix,
   NamedMetric,
+  PaymentMethod,
   Sale,
   TrendPoint,
 } from '@/models/analytics';
@@ -20,12 +21,16 @@ function startOfDay(date: Date): Date {
   return next;
 }
 
-function toDayKey(iso: string): string {
-  return iso.slice(0, 10);
+/** Local calendar day key — avoids UTC off-by-one from toISOString(). */
+function toLocalDayKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
-function onlyProducts(sales: Sale[]): Sale[] {
-  return sales.filter((sale) => sale.itemType === 'product');
+function toDayKey(iso: string): string {
+  return toLocalDayKey(new Date(iso));
 }
 
 function buildTrend(sales: Sale[], days: number): TrendPoint[] {
@@ -34,7 +39,7 @@ function buildTrend(sales: Sale[], days: number): TrendPoint[] {
   for (let i = days - 1; i >= 0; i -= 1) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = toLocalDayKey(d);
     map.set(key, { date: key, revenue: 0, profit: 0, units: 0 });
   }
   for (const sale of sales) {
@@ -59,7 +64,7 @@ function rankByRevenue(sales: Sale[], limit = 8): NamedMetric[] {
       secondary: 0,
     };
     current.value = money(current.value + sale.revenue);
-    current.secondary = (current.secondary ?? 0) + sale.quantity;
+    current.secondary = money((current.secondary ?? 0) + sale.profit);
     map.set(sale.itemId, current);
   }
   return Array.from(map.values())
@@ -111,20 +116,33 @@ function buildCategoryMix(sales: Sale[]): CategoryMix[] {
     .sort((a, b) => b.revenue - a.revenue);
 }
 
+function buildPaymentMix(sales: Sale[]): AnalyticsInsights['paymentMix'] {
+  const map = new Map<PaymentMethod, number>();
+  let total = 0;
+  for (const sale of sales) {
+    total += sale.revenue;
+    map.set(sale.paymentMethod, money((map.get(sale.paymentMethod) ?? 0) + sale.revenue));
+  }
+  return Array.from(map.entries())
+    .map(([method, revenue]) => ({
+      method,
+      revenue,
+      share: total > 0 ? money((revenue / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
 class AnalyticsService {
   async getInsights(periodDays = 30): Promise<AnalyticsInsights> {
     const since = startOfDay(new Date());
     since.setDate(since.getDate() - (periodDays - 1));
     const sinceIso = since.toISOString();
 
-    const [allSales, products, recentAll] = await Promise.all([
+    const [sales, products, recentSales] = await Promise.all([
       analyticsRepository.listSalesSince(sinceIso),
       productService.search({}),
-      analyticsRepository.listRecentSales(20),
+      analyticsRepository.listRecentSales(12),
     ]);
-
-    const sales = onlyProducts(allSales);
-    const recentSales = onlyProducts(recentAll).slice(0, 12);
 
     const revenue = money(sales.reduce((sum, sale) => sum + sale.revenue, 0));
     const cost = money(sales.reduce((sum, sale) => sum + sale.cost, 0));
@@ -134,16 +152,21 @@ class AnalyticsService {
     const marginPercent = revenue > 0 ? money((profit / revenue) * 100) : 0;
     const averageOrderValue = orderCount > 0 ? money(revenue / orderCount) : 0;
 
-    const availableProducts = products.filter((p) => p.availability === 'available');
+    const availableProducts = products.filter((p) => p.availability === 'available' && p.quantity > 0);
     const inventoryRetailValue = money(
-      availableProducts.reduce((sum, p) => sum + p.price, 0),
+      availableProducts.reduce((sum, p) => sum + p.price * p.quantity, 0),
     );
     const inventoryCostValue = money(
-      availableProducts.reduce((sum, p) => sum + (p.costPrice ?? p.price * 0.72), 0),
+      availableProducts.reduce(
+        (sum, p) => sum + (p.costPrice ?? p.price * 0.72) * p.quantity,
+        0,
+      ),
     );
     const potentialGrossProfit = money(inventoryRetailValue - inventoryCostValue);
 
-    const soldIds = new Set(sales.map((sale) => sale.itemId));
+    const soldIds = new Set(
+      sales.filter((sale) => sale.itemType === 'product').map((sale) => sale.itemId),
+    );
     const slowMovers: NamedMetric[] = availableProducts
       .filter((p) => !soldIds.has(p.id))
       .map((p) => ({
@@ -170,7 +193,7 @@ class AnalyticsService {
       topByRevenue: rankByRevenue(sales),
       topByUnits: rankByUnits(sales),
       categoryMix: buildCategoryMix(sales),
-      paymentMix: [],
+      paymentMix: buildPaymentMix(sales),
       lowStockAccessories: [],
       slowMovers,
       recentSales,

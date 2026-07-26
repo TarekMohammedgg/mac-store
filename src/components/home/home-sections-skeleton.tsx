@@ -15,7 +15,7 @@ export function HomeSectionsSkeleton() {
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="h-4 w-64 animate-pulse rounded bg-muted" />
         </div>
-        <div className="catalog-grid-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))}
@@ -26,7 +26,7 @@ export function HomeSectionsSkeleton() {
           <div className="h-8 w-48 animate-pulse rounded bg-muted" />
           <div className="h-4 w-64 animate-pulse rounded bg-muted" />
         </div>
-        <div className="catalog-grid-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <AccessoryCardSkeleton key={i} />
           ))}

@@ -173,7 +173,21 @@ class SupabaseProductRepository implements ProductRepository {
       serialNumber: `${source.serialNumber}-COPY`,
       inventoryDate: now,
       availability: 'unavailable',
+      quantity: 0,
     });
+  }
+
+  async adjustQuantity(id: string, delta: number): Promise<Product> {
+    const existing = await this.findById(id);
+    if (!existing) throw new Error(`Product ${id} not found`);
+    const quantity = Math.max(0, existing.quantity + delta);
+    let availability = existing.availability;
+    if (quantity <= 0) {
+      availability = 'sold';
+    } else if (existing.availability === 'sold') {
+      availability = 'available';
+    }
+    return this.update(id, { quantity, availability });
   }
 
   async countByAvailability(): Promise<Record<Availability, number>> {

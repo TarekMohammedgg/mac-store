@@ -42,6 +42,7 @@ export interface Dictionary {
     signIn: string;
     dashboard: string;
     products: string;
+    sales: string;
     analytics: string;
     settings: string;
   };
@@ -241,6 +242,60 @@ export interface Dictionary {
     recentActivity: string;
     noActivity: string;
   };
+  sales: {
+    title: string;
+    hint: string;
+    formTitle: string;
+    formHint: string;
+    recentTitle: string;
+    recentHint: string;
+    submit: string;
+    emptyProducts: string;
+    emptyAccessories: string;
+    emptyRecent: string;
+    fields: {
+      itemType: string;
+      item: string;
+      listPrice: string;
+      salePrice: string;
+      quantity: string;
+      soldAt: string;
+      paymentMethod: string;
+      notes: string;
+    };
+    placeholders: {
+      item: string;
+      notes: string;
+    };
+    itemTypes: {
+      product: string;
+      accessory: string;
+    };
+    payments: {
+      cash: string;
+      card: string;
+      transfer: string;
+      other: string;
+    };
+    preview: {
+      revenue: string;
+      cost: string;
+      profit: string;
+    };
+    columns: {
+      item: string;
+      listPrice: string;
+      salePrice: string;
+      profit: string;
+      when: string;
+    };
+    errors: {
+      itemRequired: string;
+      invalidPrice: string;
+      invalidQty: string;
+    };
+    availableStock: (count: number) => string;
+  };
   analytics: {
     title: string;
     hint: string;
@@ -250,6 +305,12 @@ export interface Dictionary {
     kpi: {
       revenue: string;
       revenueHint: string;
+      cost: string;
+      costHint: string;
+      profit: string;
+      profitHint: string;
+      margin: string;
+      marginHint: string;
       unitsSold: string;
       unitsSoldHint: string;
       aov: string;
@@ -264,17 +325,42 @@ export interface Dictionary {
       topUnitsHint: string;
       categoryMix: string;
       categoryMixHint: string;
+      paymentMix: string;
+      paymentMixHint: string;
       slowMovers: string;
       slowMoversHint: string;
       slowMoversOk: string;
       recentSales: string;
       recentSalesHint: string;
     };
+    sortBy: string;
+    sort: {
+      newest: string;
+      oldest: string;
+      profitDesc: string;
+      profitAsc: string;
+      priceDesc: string;
+      priceAsc: string;
+    };
     columns: {
       item: string;
+      type: string;
       qty: string;
+      listPrice: string;
+      salePrice: string;
+      profit: string;
       amount: string;
       when: string;
+    };
+    itemTypes: {
+      product: string;
+      accessory: string;
+    };
+    payments: {
+      cash: string;
+      card: string;
+      transfer: string;
+      other: string;
     };
   };
   form: {
@@ -462,6 +548,8 @@ export interface Dictionary {
     accessoryUpdated: string;
     accessoryRemoved: string;
     accessoryDuplicated: string;
+    saleRecorded: string;
+    saleFailed: string;
     stockUpdateFailed: string;
     settingsSaved: string;
     settingsReset: string;

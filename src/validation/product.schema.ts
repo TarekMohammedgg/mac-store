@@ -38,6 +38,7 @@ export const productFormSchema = z.object({
   ),
   condition: z.enum(CONDITIONS),
   price: numericString.pipe(z.number().min(0, 'Price must be at least 0')),
+  quantity: numericString.pipe(z.number().int().min(0, 'Quantity must be at least 0')),
   description: z.string().max(2000, 'Too long').default(''),
   specifications: z
     .array(

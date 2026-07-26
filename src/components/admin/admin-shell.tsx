@@ -9,6 +9,7 @@ import {
   LogOut,
   Package,
   Plug,
+  Receipt,
   Settings as SettingsIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,6 +33,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/admin', labelKey: 'nav.dashboard', icon: LayoutDashboard, exact: true },
+  { href: '/admin/sales', labelKey: 'nav.sales', icon: Receipt },
   { href: '/admin/analytics', labelKey: 'nav.analytics', icon: ChartColumn },
   { href: '/admin/products', labelKey: 'nav.products', icon: Package },
   { href: '/admin/accessories', labelKey: 'nav.accessories', icon: Plug },

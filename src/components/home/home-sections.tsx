@@ -12,6 +12,9 @@ import { useI18n } from '@/i18n';
 import { accessoryService } from '@/services/accessory.service';
 import { productService } from '@/services/product.service';
 
+/** Max product/accessory cards shown on the home landing page. */
+const HOME_CARD_LIMIT = 4;
+
 function CatalogLink({
   href,
   icon: Icon,
@@ -71,7 +74,7 @@ export function HomeSections() {
         ? data.products
             .filter((p) => p.availability === 'available')
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .slice(0, 4)
+            .slice(0, HOME_CARD_LIMIT)
         : [],
     [data],
   );
@@ -81,7 +84,7 @@ export function HomeSections() {
         ? data.accessories
             .filter((a) => a.availability && a.quantity > 0)
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-            .slice(0, 4)
+            .slice(0, HOME_CARD_LIMIT)
         : [],
     [data],
   );
@@ -133,7 +136,7 @@ export function HomeSections() {
             <p className="mt-1 text-sm text-muted-foreground">{t('home.empty.noDevicesHint')}</p>
           </div>
         ) : (
-          <div className="catalog-grid-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
             {recentProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -162,7 +165,7 @@ export function HomeSections() {
             <p className="mt-1 text-sm text-muted-foreground">{t('home.empty.noAccessoriesHint')}</p>
           </div>
         ) : (
-          <div className="catalog-grid-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
             {recentAccessories.map((accessory) => (
               <AccessoryCard key={accessory.id} accessory={accessory} />
             ))}

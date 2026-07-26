@@ -17,6 +17,7 @@ export interface Sale {
   quantity: number;
   unitCost: number;
   unitPrice: number;
+  listPrice: number;
   discount: number;
   revenue: number;
   cost: number;

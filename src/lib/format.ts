@@ -24,6 +24,22 @@ export function formatDate(
   }).format(date);
 }
 
+export function formatDateTime(
+  value: string | Date | null | undefined,
+  locale = 'ar-EG',
+): string {
+  if (!value) return '—';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
+
 export function formatRam(gb: number): string {
   if (gb >= 1024) return `${gb / 1024} TB`;
   return `${gb} GB`;

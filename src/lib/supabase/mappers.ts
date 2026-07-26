@@ -31,6 +31,7 @@ export interface ProductRow {
   cycle_count: number | null;
   condition: string;
   price: number | string;
+  quantity: number;
   description: string;
   specifications: Record<string, string> | null;
   purchase_date: string | null;
@@ -95,6 +96,7 @@ export function mapProduct(row: ProductRow): Product {
     cycleCount: row.cycle_count,
     condition: row.condition as Condition,
     price: Number(row.price),
+    quantity: row.quantity ?? 1,
     description: row.description ?? '',
     specifications: row.specifications ?? {},
     purchaseDate: row.purchase_date,
@@ -129,6 +131,7 @@ export function toProductRow(
     cycle_count: product.cycleCount,
     condition: product.condition,
     price: product.price,
+    quantity: product.quantity,
     description: product.description,
     specifications: product.specifications,
     purchase_date: product.purchaseDate,

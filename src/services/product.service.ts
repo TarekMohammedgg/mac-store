@@ -95,6 +95,10 @@ class ProductService {
     return repositories.productRepository.duplicate(id);
   }
 
+  adjustQuantity(id: string, delta: number) {
+    return repositories.productRepository.adjustQuantity(id, delta);
+  }
+
   async getImages(product: Product): Promise<ImageMeta[]> {
     const ids = [product.coverImageId, ...product.imageIds].filter(
       (id): id is string => typeof id === 'string' && id.length > 0,

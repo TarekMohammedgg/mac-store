@@ -1,7 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { BadgeDollarSign, Package, PackageSearch, ShoppingCart } from 'lucide-react';
+import {
+  BadgeDollarSign,
+  PackageSearch,
+  PiggyBank,
+  ShoppingCart,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react';
 
 import {
   HorizontalBarChart,
@@ -9,6 +16,13 @@ import {
   TrendAreaChart,
 } from '@/components/admin/analytics-charts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -21,20 +35,63 @@ import { StatsCardSkeleton, TableSkeleton } from '@/components/shared/skeletons'
 import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { useI18n } from '@/i18n';
-import { formatDate, formatPrice } from '@/lib/format';
+import { formatDateTime, formatPrice } from '@/lib/format';
+import type { Sale } from '@/models/analytics';
 import { analyticsService } from '@/services/analytics.service';
 
 const PERIOD_OPTIONS = [7, 30, 90] as const;
+
+type SalesSort =
+  | 'newest'
+  | 'oldest'
+  | 'profit-desc'
+  | 'profit-asc'
+  | 'price-desc'
+  | 'price-asc';
+
+function sortSales(sales: Sale[], sortBy: SalesSort): Sale[] {
+  const next = [...sales];
+  next.sort((a, b) => {
+    switch (sortBy) {
+      case 'oldest': {
+        const byCreated = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        if (byCreated !== 0) return byCreated;
+        return new Date(a.soldAt).getTime() - new Date(b.soldAt).getTime();
+      }
+      case 'profit-desc':
+        return b.profit - a.profit;
+      case 'profit-asc':
+        return a.profit - b.profit;
+      case 'price-desc':
+        return b.unitPrice - a.unitPrice;
+      case 'price-asc':
+        return a.unitPrice - b.unitPrice;
+      case 'newest':
+      default: {
+        const byCreated = new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (byCreated !== 0) return byCreated;
+        return new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime();
+      }
+    }
+  });
+  return next;
+}
 
 export default function AdminAnalyticsPage() {
   const { t } = useI18n();
   const labels = useLocalizedLabels();
   const [periodDays, setPeriodDays] = React.useState<(typeof PERIOD_OPTIONS)[number]>(30);
+  const [salesSort, setSalesSort] = React.useState<SalesSort>('newest');
 
   const insights = useCachedLiveQuery(
     `admin-analytics-${periodDays}`,
     () => analyticsService.getInsights(periodDays),
     [periodDays],
+  );
+
+  const sortedSales = React.useMemo(
+    () => (insights ? sortSales(insights.recentSales, salesSort) : []),
+    [insights, salesSort],
   );
 
   if (!insights) {
@@ -45,7 +102,7 @@ export default function AdminAnalyticsPage() {
           <div className="h-4 w-80 animate-pulse rounded-md bg-muted" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <StatsCardSkeleton key={i} />
           ))}
         </div>
@@ -79,7 +136,7 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <Kpi
           icon={<BadgeDollarSign className="h-4 w-4" />}
           label={t('analytics.kpi.revenue')}
@@ -87,16 +144,28 @@ export default function AdminAnalyticsPage() {
           hint={t('analytics.kpi.revenueHint')}
         />
         <Kpi
+          icon={<Wallet className="h-4 w-4" />}
+          label={t('analytics.kpi.cost')}
+          value={formatPrice(insights.cost)}
+          hint={t('analytics.kpi.costHint')}
+        />
+        <Kpi
+          icon={<PiggyBank className="h-4 w-4" />}
+          label={t('analytics.kpi.profit')}
+          value={formatPrice(insights.profit)}
+          hint={t('analytics.kpi.profitHint')}
+        />
+        <Kpi
+          icon={<TrendingUp className="h-4 w-4" />}
+          label={t('analytics.kpi.margin')}
+          value={`${insights.marginPercent}%`}
+          hint={t('analytics.kpi.marginHint')}
+        />
+        <Kpi
           icon={<ShoppingCart className="h-4 w-4" />}
           label={t('analytics.kpi.unitsSold')}
           value={String(insights.unitsSold)}
           hint={t('analytics.kpi.unitsSoldHint')}
-        />
-        <Kpi
-          icon={<Package className="h-4 w-4" />}
-          label={t('analytics.kpi.aov')}
-          value={formatPrice(insights.averageOrderValue)}
-          hint={t('analytics.kpi.aovHint', insights.unitsSold)}
         />
       </div>
 
@@ -106,7 +175,14 @@ export default function AdminAnalyticsPage() {
           <CardDescription>{t('analytics.charts.revenueTrendHint')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <TrendAreaChart points={insights.revenueTrend} emptyLabel={t('analytics.empty')} />
+          <TrendAreaChart
+            points={insights.revenueTrend}
+            emptyLabel={t('analytics.empty')}
+            revenueLabel={t('analytics.kpi.revenue')}
+            profitLabel={t('analytics.kpi.profit')}
+            formatValue={formatPrice}
+            unitsLabel={(count) => t('analytics.units', count)}
+          />
         </CardContent>
       </Card>
 
@@ -121,9 +197,10 @@ export default function AdminAnalyticsPage() {
               emptyLabel={t('analytics.empty')}
               formatValue={formatPrice}
               items={insights.topByRevenue.map((item) => ({
+                id: item.id,
                 label: item.name,
                 value: item.value,
-                hint: t('analytics.units', item.secondary ?? 0),
+                hint: `${t('analytics.kpi.profit')} ${formatPrice(item.secondary ?? 0)}`,
               }))}
             />
           </CardContent>
@@ -138,6 +215,7 @@ export default function AdminAnalyticsPage() {
               emptyLabel={t('analytics.empty')}
               formatValue={(value) => t('analytics.units', value)}
               items={insights.topByUnits.map((item) => ({
+                id: item.id,
                 label: item.name,
                 value: item.value,
                 hint: formatPrice(item.secondary ?? 0),
@@ -157,7 +235,10 @@ export default function AdminAnalyticsPage() {
             <ShareBars
               emptyLabel={t('analytics.empty')}
               items={insights.categoryMix.map((item) => ({
-                label: labels.productCategory(item.category as never) || item.category,
+                label:
+                  labels.productCategory(item.category as never) ||
+                  labels.accessoryCategory(item.category as never) ||
+                  item.category,
                 share: item.share,
                 valueLabel: formatPrice(item.revenue),
               }))}
@@ -166,74 +247,141 @@ export default function AdminAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <PackageSearch className="h-4 w-4" />
-              {t('analytics.charts.slowMovers')}
-            </CardTitle>
-            <CardDescription>{t('analytics.charts.slowMoversHint')}</CardDescription>
+            <CardTitle className="text-base">{t('analytics.charts.paymentMix')}</CardTitle>
+            <CardDescription>{t('analytics.charts.paymentMixHint')}</CardDescription>
           </CardHeader>
-          <CardContent className="pt-0">
-            {insights.slowMovers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('analytics.charts.slowMoversOk')}</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('admin.columns.model')}</TableHead>
-                    <TableHead>{t('admin.columns.category')}</TableHead>
-                    <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {insights.slowMovers.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {labels.productCategory(item.category as never)}
-                      </TableCell>
-                      <TableCell className="text-end">{formatPrice(item.value)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+          <CardContent>
+            <ShareBars
+              emptyLabel={t('analytics.empty')}
+              items={insights.paymentMix.map((item) => ({
+                label: t(`analytics.payments.${item.method}`),
+                share: item.share,
+                valueLabel: formatPrice(item.revenue),
+              }))}
+            />
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{t('analytics.charts.recentSales')}</CardTitle>
-          <CardDescription>{t('analytics.charts.recentSalesHint')}</CardDescription>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <PackageSearch className="h-4 w-4" />
+            {t('analytics.charts.slowMovers')}
+          </CardTitle>
+          <CardDescription>{t('analytics.charts.slowMoversHint')}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          {insights.recentSales.length === 0 ? (
+          {insights.slowMovers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('analytics.charts.slowMoversOk')}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="bg-muted/40">{t('admin.columns.model')}</TableHead>
+                  <TableHead className="bg-muted/40">{t('admin.columns.category')}</TableHead>
+                  <TableHead className="bg-muted/40 text-end">{t('admin.columns.price')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {insights.slowMovers.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {labels.productCategory(item.category as never)}
+                    </TableCell>
+                    <TableCell className="text-end tabular-nums">{formatPrice(item.value)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1.5">
+            <CardTitle className="text-base">{t('analytics.charts.recentSales')}</CardTitle>
+            <CardDescription>{t('analytics.charts.recentSalesHint')}</CardDescription>
+          </div>
+          {insights.recentSales.length > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                {t('analytics.sortBy')}
+              </span>
+              <Select value={salesSort} onValueChange={(value) => setSalesSort(value as SalesSort)}>
+                <SelectTrigger className="h-9 w-[11.5rem]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  <SelectItem value="newest">{t('analytics.sort.newest')}</SelectItem>
+                  <SelectItem value="oldest">{t('analytics.sort.oldest')}</SelectItem>
+                  <SelectItem value="profit-desc">{t('analytics.sort.profitDesc')}</SelectItem>
+                  <SelectItem value="profit-asc">{t('analytics.sort.profitAsc')}</SelectItem>
+                  <SelectItem value="price-desc">{t('analytics.sort.priceDesc')}</SelectItem>
+                  <SelectItem value="price-asc">{t('analytics.sort.priceAsc')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+        </CardHeader>
+        <CardContent className="pt-0">
+          {sortedSales.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('analytics.empty')}</p>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>{t('analytics.columns.item')}</TableHead>
-                  <TableHead className="text-end">{t('analytics.columns.qty')}</TableHead>
-                  <TableHead className="text-end">{t('analytics.columns.amount')}</TableHead>
-                  <TableHead className="text-end">{t('analytics.columns.when')}</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="bg-muted/40 min-w-[12rem]">
+                    {t('analytics.columns.item')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap">
+                    {t('analytics.columns.type')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap text-end">
+                    {t('analytics.columns.qty')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap text-end">
+                    {t('analytics.columns.listPrice')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap text-end">
+                    {t('analytics.columns.salePrice')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap text-end">
+                    {t('analytics.columns.profit')}
+                  </TableHead>
+                  <TableHead className="bg-muted/40 whitespace-nowrap text-end">
+                    {t('analytics.columns.when')}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {insights.recentSales.map((sale) => (
+                {sortedSales.map((sale) => (
                   <TableRow key={sale.id}>
-                    <TableCell>
-                      <div className="font-medium">{sale.itemName}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {labels.productCategory(sale.category as never)}
+                    <TableCell className="align-top">
+                      <div className="font-medium leading-snug">{sale.itemName}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        {sale.itemType === 'product'
+                          ? labels.productCategory(sale.category as never)
+                          : labels.accessoryCategory(sale.category as never)}
                       </div>
                     </TableCell>
-                    <TableCell className="text-end tabular-nums">{sale.quantity}</TableCell>
-                    <TableCell className="text-end tabular-nums font-medium">
-                      {formatPrice(sale.revenue)}
+                    <TableCell className="align-top text-muted-foreground whitespace-nowrap">
+                      {t(`analytics.itemTypes.${sale.itemType}`)}
                     </TableCell>
-                    <TableCell className="text-end text-xs text-muted-foreground">
-                      {formatDate(sale.soldAt)}
+                    <TableCell className="align-top text-end tabular-nums">{sale.quantity}</TableCell>
+                    <TableCell className="align-top text-end tabular-nums whitespace-nowrap">
+                      {formatPrice(sale.listPrice)}
+                    </TableCell>
+                    <TableCell className="align-top text-end tabular-nums font-medium whitespace-nowrap">
+                      {formatPrice(sale.unitPrice)}
+                    </TableCell>
+                    <TableCell className="align-top text-end tabular-nums whitespace-nowrap">
+                      {formatPrice(sale.profit)}
+                    </TableCell>
+                    <TableCell className="align-top text-end text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDateTime(sale.soldAt)}
                     </TableCell>
                   </TableRow>
                 ))}

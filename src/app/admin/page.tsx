@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
     const soldProducts = products.filter((p) => p.availability === 'sold').length;
     const inventoryValue = products
       .filter((p) => p.availability === 'available')
-      .reduce((acc, p) => acc + p.price, 0);
+      .reduce((acc, p) => acc + p.price * p.quantity, 0);
     const totalAccessories = accessories.length;
     const accessoryUnits = accessories.reduce((acc, a) => acc + a.quantity, 0);
     const accessoryValue = accessories.reduce((acc, a) => acc + a.price * a.quantity, 0);
@@ -172,6 +172,7 @@ export default function AdminDashboardPage() {
                   <TableRow>
                     <TableHead>{t('admin.columns.model')}</TableHead>
                     <TableHead>{t('admin.columns.category')}</TableHead>
+                    <TableHead className="text-end">{t('admin.columns.stock')}</TableHead>
                     <TableHead>{t('admin.columns.condition')}</TableHead>
                     <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
                   </TableRow>
@@ -183,6 +184,7 @@ export default function AdminDashboardPage() {
                       <TableCell className="text-muted-foreground">
                         {labels.productCategory(p.category)}
                       </TableCell>
+                      <TableCell className="text-end tabular-nums">{p.quantity}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{labels.condition(p.condition)}</Badge>
                       </TableCell>

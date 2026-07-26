@@ -6,11 +6,19 @@
 import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const key =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!url || !key) {
   console.error('Missing Supabase env vars');
   process.exit(1);
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn(
+    'Warning: SUPABASE_SERVICE_ROLE_KEY not set. Seed may fail after sales RLS hardening — use the service role key.',
+  );
 }
 
 const supabase = createClient(url, key);
@@ -112,6 +120,7 @@ async function main() {
         quantity: 1,
         unit_cost: unitCost,
         unit_price: unitPrice,
+        list_price: unitPrice,
         discount,
         revenue,
         cost,
@@ -157,6 +166,7 @@ async function main() {
       quantity: qty,
       unit_cost: unitCost,
       unit_price: unitPrice,
+      list_price: unitPrice,
       discount: 0,
       revenue,
       cost,

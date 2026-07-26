@@ -42,6 +42,7 @@ export interface ProductRepository {
   update(id: string, data: ProductUpdate): Promise<Product>;
   delete(id: string): Promise<void>;
   duplicate(id: string): Promise<Product>;
+  adjustQuantity(id: string, delta: number): Promise<Product>;
   countByAvailability(): Promise<Record<Availability, number>>;
   countByCategory(): Promise<Record<ProductCategory, number>>;
 }

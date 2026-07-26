@@ -2,13 +2,15 @@
 
 import * as React from 'react';
 
-import { subscribeDataRefresh } from '@/lib/data-refresh';
-
-const cache = new Map<string, unknown>();
+import {
+  getCachedQuery,
+  setCachedQuery,
+  subscribeDataRefresh,
+} from '@/lib/data-refresh';
 
 /**
  * Async query hook with in-memory cache. Refetches when deps change or when
- * notifyDataRefresh() is called after a mutation.
+ * notifyDataRefresh() is called after a mutation (cache is cleared first).
  */
 export function useCachedLiveQuery<T>(
   key: string,
@@ -16,7 +18,7 @@ export function useCachedLiveQuery<T>(
   deps: readonly unknown[] = [],
 ): T | undefined {
   const [snapshot, setSnapshot] = React.useState<T | undefined>(
-    () => cache.get(key) as T | undefined,
+    () => getCachedQuery<T>(key),
   );
   const [tick, setTick] = React.useState(0);
   const querierRef = React.useRef(querier);
@@ -30,7 +32,7 @@ export function useCachedLiveQuery<T>(
       try {
         const value = await querierRef.current();
         if (cancelled) return;
-        cache.set(key, value);
+        setCachedQuery(key, value);
         setSnapshot(value);
       } catch (error) {
         console.error(`[useCachedLiveQuery] ${key}`, error);
