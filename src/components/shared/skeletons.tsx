@@ -15,14 +15,17 @@ export function PageHeaderSkeleton() {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
       <SkeletonBlock className="aspect-square rounded-none" />
-      <div className="space-y-2 p-4">
-        <SkeletonBlock className="h-3 w-20" />
-        <SkeletonBlock className="h-4 w-3/4" />
-        <SkeletonBlock className="h-3 w-1/2" />
-        <div className="flex justify-between pt-1">
-          <SkeletonBlock className="h-4 w-16" />
+      <div className="flex flex-col gap-3 p-4 sm:p-5">
+        <div className="flex justify-between gap-2">
+          <SkeletonBlock className="h-3 w-20" />
+          <SkeletonBlock className="h-4 w-14 rounded-full" />
+        </div>
+        <SkeletonBlock className="h-5 w-4/5" />
+        <SkeletonBlock className="h-3 w-2/3" />
+        <div className="mt-1 flex justify-between border-t border-border/60 pt-3">
+          <SkeletonBlock className="h-6 w-24" />
           <SkeletonBlock className="h-3 w-12" />
         </div>
       </div>
@@ -32,13 +35,16 @@ export function ProductCardSkeleton() {
 
 export function AccessoryCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
+    <div className="overflow-hidden rounded-xl border border-border/80 bg-card">
       <SkeletonBlock className="aspect-square rounded-none" />
-      <div className="space-y-2 p-4">
-        <SkeletonBlock className="h-3 w-20" />
-        <SkeletonBlock className="h-4 w-3/4" />
-        <div className="flex justify-between pt-1">
-          <SkeletonBlock className="h-4 w-16" />
+      <div className="flex flex-col gap-3 p-4 sm:p-5">
+        <div className="flex justify-between gap-2">
+          <SkeletonBlock className="h-3 w-20" />
+          <SkeletonBlock className="h-4 w-14 rounded-full" />
+        </div>
+        <SkeletonBlock className="h-5 w-4/5" />
+        <div className="mt-1 flex justify-between border-t border-border/60 pt-3">
+          <SkeletonBlock className="h-6 w-24" />
           <SkeletonBlock className="h-3 w-16" />
         </div>
       </div>
@@ -48,7 +54,7 @@ export function AccessoryCardSkeleton() {
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="catalog-grid">
       {Array.from({ length: count }).map((_, i) => (
         <ProductCardSkeleton key={i} />
       ))}
@@ -58,7 +64,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
 
 export function AccessoryGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="catalog-grid">
       {Array.from({ length: count }).map((_, i) => (
         <AccessoryCardSkeleton key={i} />
       ))}
@@ -156,9 +162,9 @@ export function HomeSectionsSkeleton() {
           <SkeletonBlock className="h-7 w-48" />
           <SkeletonBlock className="h-4 w-64" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="catalog-grid-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonBlock key={i} className="aspect-square rounded-lg" />
+            <ProductCardSkeleton key={i} />
           ))}
         </div>
       </section>
@@ -167,9 +173,9 @@ export function HomeSectionsSkeleton() {
           <SkeletonBlock className="h-7 w-48" />
           <SkeletonBlock className="h-4 w-64" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="catalog-grid-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonBlock key={i} className="aspect-square rounded-lg" />
+            <AccessoryCardSkeleton key={i} />
           ))}
         </div>
       </section>

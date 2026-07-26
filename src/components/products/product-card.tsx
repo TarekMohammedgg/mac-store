@@ -3,7 +3,6 @@ import Link from 'next/link';
 
 import { ImageThumb } from '@/components/shared/image-thumb';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { formatPrice, formatRam, formatStorage } from '@/lib/format';
 import type { Product } from '@/models/product';
@@ -12,48 +11,71 @@ interface ProductCardProps {
   product: Product;
 }
 
+function availabilityVariant(availability: Product['availability']) {
+  if (availability === 'available') return 'success' as const;
+  if (availability === 'sold') return 'destructive' as const;
+  return 'secondary' as const;
+}
+
 function ProductCardImpl({ product }: ProductCardProps) {
   const labels = useLocalizedLabels();
+
   return (
-    <Link href={`/products/${product.id}`} className="group block">
-      <Card className="h-full overflow-hidden transition-shadow group-hover:shadow-md">
-        <div className="aspect-square bg-muted">
-          <ImageThumb imageId={product.coverImageId} alt={product.model} />
+    <Link
+      href={`/products/${product.id}`}
+      className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <article className="flex h-full flex-col overflow-hidden rounded-xl border border-border/80 bg-card transition-[border-color,box-shadow] duration-300 ease-out group-hover:border-foreground/25 group-hover:shadow-[0_12px_40px_-24px_rgba(0,0,0,0.35)] dark:group-hover:shadow-[0_12px_40px_-24px_rgba(0,0,0,0.8)]">
+        <div className="relative aspect-square overflow-hidden bg-muted">
+          <ImageThumb
+            imageId={product.coverImageId}
+            alt={product.model}
+            className="transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:group-hover:scale-[1.04]"
+          />
         </div>
-        <CardContent className="space-y-2 p-4">
-          <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-muted-foreground">
-            <span>{labels.productCategory(product.category)}</span>
+
+        <div className="flex flex-1 flex-col gap-3 p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+              {labels.productCategory(product.category)}
+            </span>
             <Badge
-              variant={
-                product.availability === 'available'
-                  ? 'success'
-                  : product.availability === 'sold'
-                    ? 'destructive'
-                    : 'secondary'
-              }
-              className="text-[10px]"
+              variant={availabilityVariant(product.availability)}
+              className="shrink-0 px-2 py-0 text-[10px] font-medium tracking-wide"
             >
               {labels.availability(product.availability)}
             </Badge>
           </div>
-          <h3 className="line-clamp-2 text-sm font-medium leading-snug">{product.model}</h3>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span>{product.cpu}</span>
-            <span aria-hidden>·</span>
-            <span>{formatRam(product.ram)}</span>
-            <span aria-hidden>·</span>
-            <span>
-              {formatStorage(product.storage)} {product.storageType}
-            </span>
+
+          <div className="space-y-1.5">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
+              {product.model}
+            </h3>
+            <p className="line-clamp-1 text-xs text-muted-foreground">
+              <span>{product.cpu}</span>
+              <span aria-hidden className="mx-1.5">
+                ·
+              </span>
+              <span>{formatRam(product.ram)}</span>
+              <span aria-hidden className="mx-1.5">
+                ·
+              </span>
+              <span>
+                {formatStorage(product.storage)} {product.storageType}
+              </span>
+            </p>
           </div>
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-base font-semibold">{formatPrice(product.price)}</span>
-            <span className="text-xs text-muted-foreground">
+
+          <div className="mt-auto flex items-end justify-between gap-3 border-t border-border/60 pt-3">
+            <span className="text-xl font-semibold tracking-tight tabular-nums text-foreground">
+              {formatPrice(product.price)}
+            </span>
+            <span className="pb-0.5 text-xs text-muted-foreground">
               {labels.condition(product.condition)}
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </article>
     </Link>
   );
 }

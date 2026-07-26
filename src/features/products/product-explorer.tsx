@@ -144,7 +144,7 @@ export function ProductExplorer() {
           <div className="text-sm text-muted-foreground">
             {t('products.count', result?.total ?? 0)}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="catalog-grid">
             {result?.items.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

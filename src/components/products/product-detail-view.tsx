@@ -171,7 +171,7 @@ export function ProductDetailView({ id }: { id: string }) {
               {t('home.viewAll')}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="catalog-grid-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

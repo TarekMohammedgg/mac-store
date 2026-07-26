@@ -126,7 +126,7 @@ export function AccessoryDetailView({ id }: { id: string }) {
               {t('home.viewAll')}
             </Link>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="catalog-grid-4">
             {related.map((a) => (
               <AccessoryCard key={a.id} accessory={a} />
             ))}

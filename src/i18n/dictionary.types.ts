@@ -98,6 +98,8 @@ export interface Dictionary {
     };
     searchPlaceholder: string;
     activeFilters: (count: number) => string;
+    moreFilters: string;
+    fewerFilters: string;
     empty: {
       title: string;
       description: string;

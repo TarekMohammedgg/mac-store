@@ -99,7 +99,9 @@ export const en: Dictionary = {
       anyStorage: 'Any storage',
     },
     searchPlaceholder: 'Search by model, serial, CPU, RAM, storage...',
-    activeFilters: (count) => `${count} active filters`,
+    activeFilters: (count) => `${count} active`,
+    moreFilters: 'Specs & price',
+    fewerFilters: 'Hide specs',
     empty: {
       title: 'No devices match your filters',
       description: 'Try adjusting your filters or clear them to see all devices.',
@@ -142,7 +144,7 @@ export const en: Dictionary = {
       inStockOnly: 'In stock only',
     },
     searchPlaceholder: 'Search accessories...',
-    activeFilters: (count) => `${count} active filters`,
+    activeFilters: (count) => `${count} active`,
     empty: {
       title: 'No accessories match your filters',
       description: 'Try adjusting your filters or clear them to see all accessories.',

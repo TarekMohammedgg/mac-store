@@ -98,7 +98,9 @@ export const ar: Dictionary = {
       anyStorage: 'أي تخزين',
     },
     searchPlaceholder: 'ابحث بالموديل، الرقم التسلسلي، المعالج، الذاكرة، السعة…',
-    activeFilters: (count) => `${count} فلاتر نشطة`,
+    activeFilters: (count) => `${count} نشط`,
+    moreFilters: 'المواصفات والسعر',
+    fewerFilters: 'إخفاء المواصفات',
     empty: {
       title: 'لا توجد أجهزة تطابق فلاترك',
       description: 'حاول تعديل الفلاتر أو امسحها لعرض جميع الأجهزة.',
@@ -141,7 +143,7 @@ export const ar: Dictionary = {
       inStockOnly: 'المتوفر فقط',
     },
     searchPlaceholder: 'ابحث في الإكسسوارات…',
-    activeFilters: (count) => `${count} فلاتر نشطة`,
+    activeFilters: (count) => `${count} نشط`,
     empty: {
       title: 'لا توجد إكسسوارات تطابق فلاترك',
       description: 'حاول تعديل الفلاتر أو امسحها لعرض جميع الإكسسوارات.',
