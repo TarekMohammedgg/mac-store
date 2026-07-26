@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { BrandLogo } from '@/components/brand/brand-logo';
@@ -21,6 +21,7 @@ export function SiteHeader() {
   const brandName = useStoreBrandName(dictionary.brand.name);
   const session = useAuthStore((state) => state.session);
   const logout = useAuthStore((state) => state.logout);
+  const isAdmin = session?.role === 'admin';
 
   const navItems = [
     { href: '/', label: t('nav.home') },
@@ -68,19 +69,17 @@ export function SiteHeader() {
         </nav>
         <div className="flex shrink-0 items-center gap-1">
           <SettingsMenu />
-          {session?.role === 'admin' ? (
-            <Link
-              href="/admin"
-              prefetch
-              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline-flex"
-            >
-              {t('nav.dashboard')}
-            </Link>
+          {isAdmin ? (
+            <Button asChild variant="ghost" size="icon" aria-label={t('nav.dashboard')}>
+              <Link href="/admin" prefetch>
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+            </Button>
           ) : null}
           {session ? (
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
-              {t('nav.signOut')}
+              <span className="hidden sm:inline">{t('nav.signOut')}</span>
             </Button>
           ) : (
             <Button asChild size="sm">
