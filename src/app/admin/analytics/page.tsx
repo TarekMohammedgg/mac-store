@@ -112,19 +112,19 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t('analytics.title')}</h1>
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('analytics.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('analytics.hint')}</p>
         </div>
-        <div className="flex items-center gap-1 rounded-lg border p-1">
+        <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border p-1">
           {PERIOD_OPTIONS.map((days) => (
             <button
               key={days}
               type="button"
               onClick={() => setPeriodDays(days)}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 periodDays === days
                   ? 'bg-foreground text-background'
                   : 'text-muted-foreground hover:text-foreground'
@@ -136,7 +136,7 @@ export default function AdminAnalyticsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5">
         <Kpi
           icon={<BadgeDollarSign className="h-4 w-4" />}
           label={t('analytics.kpi.revenue')}
@@ -311,7 +311,7 @@ export default function AdminAnalyticsPage() {
                 {t('analytics.sortBy')}
               </span>
               <Select value={salesSort} onValueChange={(value) => setSalesSort(value as SalesSort)}>
-                <SelectTrigger className="h-9 w-[11.5rem]">
+                <SelectTrigger className="h-9 w-full max-w-[11.5rem]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent align="end">
@@ -407,13 +407,15 @@ function Kpi({
 }) {
   return (
     <Card>
-      <CardContent className="space-y-2 p-5">
-        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
-          <span>{label}</span>
-          {icon}
+      <CardContent className="space-y-2 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="min-w-0 leading-snug">{label}</span>
+          <span className="shrink-0">{icon}</span>
         </div>
-        <div className="text-2xl font-semibold tracking-tight tabular-nums">{value}</div>
-        {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
+        <div className="break-words text-xl font-semibold tracking-tight tabular-nums sm:text-2xl">
+          {value}
+        </div>
+        {hint ? <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
       </CardContent>
     </Card>
   );

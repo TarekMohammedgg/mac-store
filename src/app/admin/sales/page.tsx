@@ -204,7 +204,7 @@ export default function AdminSalesPage() {
   const catalogReady = products !== undefined && accessories !== undefined;
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-6 sm:space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t('sales.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('sales.hint')}</p>

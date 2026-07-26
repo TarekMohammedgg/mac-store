@@ -71,12 +71,12 @@ export default function AdminDashboardPage() {
 
   if (!dashboard) {
     return (
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-6 sm:space-y-8">
         <div className="space-y-2">
-          <div className="h-8 w-48 animate-pulse rounded-md bg-muted" />
-          <div className="h-4 w-64 animate-pulse rounded-md bg-muted" />
+          <div className="h-8 w-48 max-w-full animate-pulse rounded-md bg-muted" />
+          <div className="h-4 w-64 max-w-full animate-pulse rounded-md bg-muted" />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <StatsCardSkeleton key={i} />
           ))}
@@ -89,13 +89,15 @@ export default function AdminDashboardPage() {
   const { stats, recentProducts, recentAccessories } = dashboard;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
+    <div className="min-w-0 space-y-6 sm:space-y-8">
+      <div className="min-w-0">
+        <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+          {t('admin.dashboardTitle')}
+        </h1>
         <p className="text-sm text-muted-foreground">{t('admin.dashboardHint')}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatCard
           icon={<DollarSign className="h-4 w-4" />}
           label={t('analytics.kpi.revenue')}
@@ -135,7 +137,7 @@ export default function AdminDashboardPage() {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <StatCard
           icon={<Package className="h-4 w-4" />}
           label={t('admin.stats.deviceValue')}
@@ -150,22 +152,23 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between text-base">
-              <span className="flex items-center gap-2">
-                <Boxes className="h-4 w-4" /> {t('admin.recentDevices')}
+          <CardHeader className="space-y-0 p-4 sm:p-6">
+            <CardTitle className="flex items-center justify-between gap-3 text-base">
+              <span className="flex min-w-0 items-center gap-2">
+                <Boxes className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('admin.recentDevices')}</span>
               </span>
               <Link
                 href="/admin/products"
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
               >
                 {t('home.viewAll')}
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {recentProducts.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -200,20 +203,21 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between text-base">
-              <span className="flex items-center gap-2">
-                <Plug className="h-4 w-4" /> {t('admin.recentAccessories')}
+          <CardHeader className="space-y-0 p-4 sm:p-6">
+            <CardTitle className="flex items-center justify-between gap-3 text-base">
+              <span className="flex min-w-0 items-center gap-2">
+                <Plug className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t('admin.recentAccessories')}</span>
               </span>
               <Link
                 href="/admin/accessories"
-                className="text-xs text-muted-foreground hover:text-foreground"
+                className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
               >
                 {t('home.viewAll')}
               </Link>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {recentAccessories.length > 0 ? (
               <Table>
                 <TableHeader>
@@ -245,27 +249,29 @@ export default function AdminDashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="space-y-0 p-4 sm:p-6">
           <CardTitle className="text-base">{t('admin.recentActivity')}</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           {recentProducts.length > 0 ? (
             <ul className="space-y-3 text-sm">
               {recentProducts.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center justify-between border-b pb-2 last:border-0"
+                  className="flex flex-col gap-1 border-b pb-3 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pb-2"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-foreground" />
-                    <div>
-                      <div className="font-medium">{p.model}</div>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="h-2 w-2 shrink-0 rounded-full bg-foreground" />
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">{p.model}</div>
                       <div className="text-xs text-muted-foreground">
                         {labels.productCategory(p.category)} · {labels.availability(p.availability)}
                       </div>
                     </div>
                   </div>
-                  <span className="text-xs text-muted-foreground">{formatDate(p.createdAt)}</span>
+                  <span className="ps-5 text-xs text-muted-foreground sm:ps-0 sm:shrink-0">
+                    {formatDate(p.createdAt)}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -291,13 +297,15 @@ function StatCard({
 }) {
   return (
     <Card>
-      <CardContent className="space-y-2 p-5">
-        <div className="flex items-center justify-between text-xs uppercase tracking-wider text-muted-foreground">
-          <span>{label}</span>
-          {icon}
+      <CardContent className="space-y-2 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="min-w-0 leading-snug">{label}</span>
+          <span className="shrink-0">{icon}</span>
         </div>
-        <div className="text-2xl font-semibold tracking-tight">{value}</div>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+        <div className="break-words text-xl font-semibold tracking-tight tabular-nums sm:text-2xl">
+          {value}
+        </div>
+        {hint && <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>}
       </CardContent>
     </Card>
   );

@@ -87,13 +87,13 @@ export default function AdminProductsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t('nav.products')}</h1>
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('nav.products')}</h1>
           <p className="text-sm text-muted-foreground">{t('admin.dashboardHint')}</p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/admin/products/new">
             <Plus className="h-4 w-4" /> {t('admin.newDevice')}
           </Link>
@@ -102,8 +102,8 @@ export default function AdminProductsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="flex items-center gap-2 border-b p-4">
-            <div className="relative flex-1">
+          <div className="flex min-w-0 items-center gap-2 border-b p-3 sm:p-4">
+            <div className="relative min-w-0 flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground rtl:left-auto rtl:right-3" />
               <Input
                 value={query}
@@ -112,7 +112,7 @@ export default function AdminProductsPage() {
                 className="pl-9 rtl:pl-3 rtl:pr-9"
               />
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="shrink-0 text-xs text-muted-foreground">
               {products === undefined ? '…' : `${filtered.length} / ${products.length}`}
             </div>
           </div>

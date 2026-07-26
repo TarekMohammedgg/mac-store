@@ -88,7 +88,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">
         {t('common.loading')}
       </div>
     );
@@ -99,8 +99,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r bg-background lg:block">
+    <div className="flex min-h-dvh max-w-[100vw] overflow-x-clip bg-muted/30">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r bg-background lg:block">
         <div className="flex h-full flex-col">
           <Link
             href="/"
@@ -127,7 +127,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   )}
                   aria-current={active ? 'page' : undefined}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4 shrink-0" />
                   {t(item.labelKey)}
                 </Link>
               );
@@ -141,29 +141,36 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-3">
+      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background/80 px-3 backdrop-blur sm:h-16 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
             <Link
               href="/admin"
-              className="flex items-center gap-2.5 font-semibold tracking-tight lg:hidden"
+              className="flex min-w-0 items-center gap-2 font-semibold tracking-tight lg:hidden"
             >
-              <BrandLogo size="md" />
-              <span className="truncate">{brandName}</span>
+              <BrandLogo size="sm" />
+              <span className="truncate text-sm sm:text-base">{brandName}</span>
             </Link>
             <div className="hidden lg:block">
               <h1 className="text-sm text-muted-foreground">{t('nav.admin')}</h1>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
             <SettingsMenu />
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" /> {t('nav.signOut')}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              aria-label={t('nav.signOut')}
+              className="px-2 sm:px-3"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('nav.signOut')}</span>
             </Button>
           </div>
         </header>
         <nav
-          className="flex items-center gap-1 overflow-x-auto border-b bg-background px-4 py-2 lg:hidden"
+          className="flex items-center gap-1 overflow-x-auto overscroll-x-contain border-b bg-background px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
           aria-label="Admin mobile"
         >
           {NAV_ITEMS.map((item) => {
@@ -176,19 +183,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 prefetch
                 onClick={() => setPendingHref(item.href)}
                 className={cn(
-                  'flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap',
+                  'inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs whitespace-nowrap',
                   active
                     ? 'border-foreground text-foreground'
                     : 'border-transparent text-muted-foreground',
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3.5 w-3.5 shrink-0" />
                 {t(item.labelKey)}
               </Link>
             );
           })}
         </nav>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-clip p-3 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

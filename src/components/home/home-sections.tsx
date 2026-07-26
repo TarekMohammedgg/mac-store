@@ -5,15 +5,13 @@ import Link from 'next/link';
 import { ArrowRight, Laptop, Plug, type LucideIcon } from 'lucide-react';
 
 import { HomeSectionsSkeleton } from '@/components/home/home-sections-skeleton';
+import { HOME_CARD_GRID_CLASS, HOME_CARD_LIMIT } from '@/components/home/home-constants';
 import { AccessoryCard } from '@/components/accessories/accessory-card';
 import { ProductCard } from '@/components/products/product-card';
 import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
 import { useI18n } from '@/i18n';
 import { accessoryService } from '@/services/accessory.service';
 import { productService } from '@/services/product.service';
-
-/** Max product/accessory cards shown on the home landing page. */
-const HOME_CARD_LIMIT = 4;
 
 function CatalogLink({
   href,
@@ -136,7 +134,7 @@ export function HomeSections() {
             <p className="mt-1 text-sm text-muted-foreground">{t('home.empty.noDevicesHint')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
+          <div className={HOME_CARD_GRID_CLASS}>
             {recentProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -165,7 +163,7 @@ export function HomeSections() {
             <p className="mt-1 text-sm text-muted-foreground">{t('home.empty.noAccessoriesHint')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:gap-6 lg:grid-cols-4 lg:gap-6">
+          <div className={HOME_CARD_GRID_CLASS}>
             {recentAccessories.map((accessory) => (
               <AccessoryCard key={accessory.id} accessory={accessory} />
             ))}
