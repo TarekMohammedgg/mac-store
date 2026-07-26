@@ -125,50 +125,49 @@ export default function AdminProductsPage() {
               {t('admin.empty.noDevices')}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16" />
-                  <TableHead>{t('admin.columns.model')}</TableHead>
-                  <TableHead>{t('admin.columns.category')}</TableHead>
-                  <TableHead>{t('admin.columns.condition')}</TableHead>
-                  <TableHead>{t('admin.columns.stock')}</TableHead>
-                  <TableHead>{t('admin.columns.status')}</TableHead>
-                  <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
-                  <TableHead className="w-32 text-end">{t('admin.columns.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <ul className="divide-y md:hidden">
                 {filtered.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <div className="h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                  <li key={product.id} className="space-y-3 p-3">
+                    <div className="flex gap-3">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-muted">
                         <ImageThumb imageId={product.coverImageId} alt={product.model} />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{product.model}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {product.cpu} · {product.ram}GB · {product.storage}GB
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{product.model}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {labels.productCategory(product.category)} ·{' '}
+                          {labels.condition(product.condition)}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={
+                              product.availability === 'available'
+                                ? 'success'
+                                : product.availability === 'sold'
+                                  ? 'destructive'
+                                  : 'secondary'
+                            }
+                          >
+                            {labels.availability(product.availability)}
+                          </Badge>
+                          <span className="text-sm font-semibold tabular-nums">
+                            {formatPrice(product.price)}
+                          </span>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {labels.productCategory(product.category)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{labels.condition(product.condition)}</Badge>
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-9 w-9"
                           onClick={() => adjustStock(product.id, -1)}
                           aria-label={t('admin.actions.decreaseStock')}
                           disabled={product.quantity <= 0}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-3.5 w-3.5" />
                         </Button>
                         <span className="min-w-8 text-center text-sm font-medium tabular-nums">
                           {product.quantity}
@@ -176,30 +175,14 @@ export default function AdminProductsPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-9 w-9"
                           onClick={() => adjustStock(product.id, 1)}
                           aria-label={t('admin.actions.increaseStock')}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          product.availability === 'available'
-                            ? 'success'
-                            : product.availability === 'sold'
-                              ? 'destructive'
-                              : 'secondary'
-                        }
-                      >
-                        {labels.availability(product.availability)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-end">{formatPrice(product.price)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center gap-1">
                         <Button asChild variant="ghost" size="icon" aria-label={t('admin.actions.edit')}>
                           <Link href={`/admin/products/${product.id}/edit`}>
                             <Pencil className="h-4 w-4" />
@@ -237,11 +220,139 @@ export default function AdminProductsPage() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16" />
+                      <TableHead>{t('admin.columns.model')}</TableHead>
+                      <TableHead>{t('admin.columns.category')}</TableHead>
+                      <TableHead>{t('admin.columns.condition')}</TableHead>
+                      <TableHead>{t('admin.columns.stock')}</TableHead>
+                      <TableHead>{t('admin.columns.status')}</TableHead>
+                      <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
+                      <TableHead className="w-32 text-end">{t('admin.columns.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div className="h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                            <ImageThumb imageId={product.coverImageId} alt={product.model} />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{product.model}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {product.cpu} · {product.ram}GB · {product.storage}GB
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {labels.productCategory(product.category)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{labels.condition(product.condition)}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => adjustStock(product.id, -1)}
+                              aria-label={t('admin.actions.decreaseStock')}
+                              disabled={product.quantity <= 0}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="min-w-8 text-center text-sm font-medium tabular-nums">
+                              {product.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => adjustStock(product.id, 1)}
+                              aria-label={t('admin.actions.increaseStock')}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              product.availability === 'available'
+                                ? 'success'
+                                : product.availability === 'sold'
+                                  ? 'destructive'
+                                  : 'secondary'
+                            }
+                          >
+                            {labels.availability(product.availability)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-end">{formatPrice(product.price)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t('admin.actions.edit')}
+                            >
+                              <Link href={`/admin/products/${product.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDuplicate(product.id)}
+                              aria-label={t('admin.actions.duplicate')}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label={t('admin.actions.delete')}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {t('admin.confirm.deleteDeviceTitle')}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t('admin.confirm.deleteDeviceDescription', product.model)}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(product.id)}>
+                                    {t('common.delete')}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

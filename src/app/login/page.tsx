@@ -73,7 +73,12 @@ function LoginForm({ mode }: { mode: 'signin' | 'signup' }) {
   });
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4 rounded-lg border bg-card p-6 shadow-sm" aria-busy={loading}>
+    <form
+      method="post"
+      onSubmit={onSubmit}
+      className="space-y-4 rounded-lg border bg-card p-6 shadow-sm"
+      aria-busy={loading}
+    >
       <div className="space-y-2">
         <Label htmlFor="email">{t('login.email')}</Label>
         <Input

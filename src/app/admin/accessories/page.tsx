@@ -124,73 +124,63 @@ export default function AdminAccessoriesPage() {
               {t('admin.empty.noAccessories')}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16" />
-                  <TableHead>{t('admin.columns.name')}</TableHead>
-                  <TableHead>{t('admin.columns.category')}</TableHead>
-                  <TableHead>{t('admin.columns.stock')}</TableHead>
-                  <TableHead>{t('admin.columns.status')}</TableHead>
-                  <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
-                  <TableHead className="w-40 text-end">{t('admin.columns.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              <ul className="divide-y md:hidden">
                 {filtered.map((accessory) => (
-                  <TableRow key={accessory.id}>
-                    <TableCell>
-                      <div className="h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                  <li key={accessory.id} className="space-y-3 p-3">
+                    <div className="flex gap-3">
+                      <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-muted">
                         <ImageThumb imageId={accessory.coverImageId} alt={accessory.name} />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium">{accessory.name}</div>
-                      <div className="line-clamp-1 text-xs text-muted-foreground">
-                        {accessory.description}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{accessory.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {labels.accessoryCategory(accessory.category)}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={
+                              accessory.availability && accessory.quantity > 0
+                                ? 'success'
+                                : 'destructive'
+                            }
+                          >
+                            {accessory.availability && accessory.quantity > 0
+                              ? t('accessory.inStock')
+                              : t('accessory.outOfStock')}
+                          </Badge>
+                          <span className="text-sm font-semibold tabular-nums">
+                            {formatPrice(accessory.price)}
+                          </span>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {labels.accessoryCategory(accessory.category)}
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1">
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-9 w-9"
                           onClick={() => adjustStock(accessory.id, -1)}
                           aria-label={t('admin.actions.decreaseStock')}
                           disabled={accessory.quantity <= 0}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="h-3.5 w-3.5" />
                         </Button>
-                        <span className="min-w-8 text-center text-sm font-medium">
+                        <span className="min-w-8 text-center text-sm font-medium tabular-nums">
                           {accessory.quantity}
                         </span>
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-7 w-7"
+                          className="h-9 w-9"
                           onClick={() => adjustStock(accessory.id, 1)}
                           aria-label={t('admin.actions.increaseStock')}
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="h-3.5 w-3.5" />
                         </Button>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={accessory.availability && accessory.quantity > 0 ? 'success' : 'destructive'}
-                      >
-                        {accessory.availability && accessory.quantity > 0
-                          ? t('accessory.inStock')
-                          : t('accessory.outOfStock')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-end">{formatPrice(accessory.price)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center gap-1">
                         <Button asChild variant="ghost" size="icon" aria-label={t('admin.actions.edit')}>
                           <Link href={`/admin/accessories/${accessory.id}/edit`}>
                             <Pencil className="h-4 w-4" />
@@ -228,11 +218,135 @@ export default function AdminAccessoriesPage() {
                           </AlertDialogContent>
                         </AlertDialog>
                       </div>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16" />
+                      <TableHead>{t('admin.columns.name')}</TableHead>
+                      <TableHead>{t('admin.columns.category')}</TableHead>
+                      <TableHead>{t('admin.columns.stock')}</TableHead>
+                      <TableHead>{t('admin.columns.status')}</TableHead>
+                      <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
+                      <TableHead className="w-40 text-end">{t('admin.columns.actions')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((accessory) => (
+                      <TableRow key={accessory.id}>
+                        <TableCell>
+                          <div className="h-10 w-10 overflow-hidden rounded-md border bg-muted">
+                            <ImageThumb imageId={accessory.coverImageId} alt={accessory.name} />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{accessory.name}</div>
+                          <div className="line-clamp-1 text-xs text-muted-foreground">
+                            {accessory.description}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {labels.accessoryCategory(accessory.category)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => adjustStock(accessory.id, -1)}
+                              aria-label={t('admin.actions.decreaseStock')}
+                              disabled={accessory.quantity <= 0}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="min-w-8 text-center text-sm font-medium">
+                              {accessory.quantity}
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => adjustStock(accessory.id, 1)}
+                              aria-label={t('admin.actions.increaseStock')}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              accessory.availability && accessory.quantity > 0
+                                ? 'success'
+                                : 'destructive'
+                            }
+                          >
+                            {accessory.availability && accessory.quantity > 0
+                              ? t('accessory.inStock')
+                              : t('accessory.outOfStock')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-end">{formatPrice(accessory.price)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              aria-label={t('admin.actions.edit')}
+                            >
+                              <Link href={`/admin/accessories/${accessory.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDuplicate(accessory.id)}
+                              aria-label={t('admin.actions.duplicate')}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label={t('admin.actions.delete')}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {t('admin.confirm.deleteAccessoryTitle')}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t('admin.confirm.deleteAccessoryDescription', accessory.name)}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(accessory.id)}>
+                                    {t('common.delete')}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

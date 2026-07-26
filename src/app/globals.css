@@ -55,12 +55,21 @@
   * {
     @apply border-border;
   }
+  html {
+    width: 100%;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    width: 100%;
+    max-width: 100%;
     overflow-x: clip;
+    position: relative;
   }
   ::selection {
     @apply bg-foreground/10;

@@ -64,6 +64,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   React.useEffect(() => {
+    // Hard unlock if auth init never settles (hung network / HMR).
+    const id = window.setTimeout(() => {
+      const state = useAuthStore.getState();
+      if (!state.initialized) {
+        useAuthStore.setState({ initialized: true, hydrated: true });
+      }
+    }, 4_000);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  React.useEffect(() => {
     for (const item of NAV_ITEMS) {
       router.prefetch(item.href);
     }
@@ -88,7 +99,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (!hydrated) {
     return (
-      <div className="flex min-h-dvh items-center justify-center text-sm text-muted-foreground">
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         {t('common.loading')}
       </div>
     );
@@ -99,7 +110,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh max-w-[100vw] overflow-x-clip bg-muted/30">
+    <div className="flex w-full min-w-0 min-h-dvh overflow-x-clip bg-muted/30">
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 border-r bg-background lg:block">
         <div className="flex h-full flex-col">
           <Link
@@ -141,9 +152,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-h-dvh min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background/80 px-3 backdrop-blur sm:h-16 sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
+      <div className="flex w-full min-w-0 min-h-dvh flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-14 w-full min-w-0 items-center justify-between gap-2 border-b bg-background/80 px-3 backdrop-blur sm:h-16 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link
               href="/"
               className="flex min-w-0 items-center gap-2 font-semibold tracking-tight lg:hidden"
@@ -170,7 +181,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <nav
-          className="flex items-center gap-1 overflow-x-auto overscroll-x-contain border-b bg-background px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
+          className="flex w-full min-w-0 items-center gap-1 overflow-x-auto overscroll-x-contain border-b bg-background px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] lg:hidden [&::-webkit-scrollbar]:hidden"
           aria-label="Admin mobile"
         >
           {NAV_ITEMS.map((item) => {
@@ -195,7 +206,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <main className="min-w-0 flex-1 overflow-x-clip p-3 sm:p-6 lg:p-8">{children}</main>
+        <main className="w-full min-w-0 flex-1 p-3 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

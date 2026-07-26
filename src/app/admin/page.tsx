@@ -22,6 +22,8 @@ import { Badge } from '@/components/ui/badge';
 import { accessoryService } from '@/services/accessory.service';
 import { analyticsService } from '@/services/analytics.service';
 import { productService } from '@/services/product.service';
+import type { Accessory } from '@/models/accessory';
+import type { Product } from '@/models/product';
 
 export default function AdminDashboardPage() {
   const { t } = useI18n();
@@ -71,7 +73,7 @@ export default function AdminDashboardPage() {
 
   if (!dashboard) {
     return (
-      <div className="min-w-0 space-y-6 sm:space-y-8">
+      <div className="w-full min-w-0 space-y-6 sm:space-y-8">
         <div className="space-y-2">
           <div className="h-8 w-48 max-w-full animate-pulse rounded-md bg-muted" />
           <div className="h-4 w-64 max-w-full animate-pulse rounded-md bg-muted" />
@@ -89,7 +91,7 @@ export default function AdminDashboardPage() {
   const { stats, recentProducts, recentAccessories } = dashboard;
 
   return (
-    <div className="min-w-0 space-y-6 sm:space-y-8">
+    <div className="w-full min-w-0 space-y-6 sm:space-y-8">
       <div className="min-w-0">
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
           {t('admin.dashboardTitle')}
@@ -153,7 +155,7 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-        <Card>
+        <Card className="w-full min-w-0">
           <CardHeader className="space-y-0 p-4 sm:p-6">
             <CardTitle className="flex items-center justify-between gap-3 text-base">
               <span className="flex min-w-0 items-center gap-2">
@@ -170,39 +172,53 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {recentProducts.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('admin.columns.model')}</TableHead>
-                    <TableHead>{t('admin.columns.category')}</TableHead>
-                    <TableHead className="text-end">{t('admin.columns.stock')}</TableHead>
-                    <TableHead>{t('admin.columns.condition')}</TableHead>
-                    <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                <ul className="space-y-3 md:hidden">
                   {recentProducts.map((p) => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.model}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {labels.productCategory(p.category)}
-                      </TableCell>
-                      <TableCell className="text-end tabular-nums">{p.quantity}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{labels.condition(p.condition)}</Badge>
-                      </TableCell>
-                      <TableCell className="text-end">{formatPrice(p.price)}</TableCell>
-                    </TableRow>
+                    <ProductMobileRow
+                      key={p.id}
+                      product={p}
+                      category={labels.productCategory(p.category)}
+                      condition={labels.condition(p.condition)}
+                    />
                   ))}
-                </TableBody>
-              </Table>
+                </ul>
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('admin.columns.model')}</TableHead>
+                        <TableHead>{t('admin.columns.category')}</TableHead>
+                        <TableHead className="text-end">{t('admin.columns.stock')}</TableHead>
+                        <TableHead>{t('admin.columns.condition')}</TableHead>
+                        <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentProducts.map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-medium">{p.model}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {labels.productCategory(p.category)}
+                          </TableCell>
+                          <TableCell className="text-end tabular-nums">{p.quantity}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{labels.condition(p.condition)}</Badge>
+                          </TableCell>
+                          <TableCell className="text-end">{formatPrice(p.price)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">{t('home.empty.noDevices')}</p>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="w-full min-w-0">
           <CardHeader className="space-y-0 p-4 sm:p-6">
             <CardTitle className="flex items-center justify-between gap-3 text-base">
               <span className="flex min-w-0 items-center gap-2">
@@ -219,28 +235,41 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {recentAccessories.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('admin.columns.name')}</TableHead>
-                    <TableHead>{t('admin.columns.category')}</TableHead>
-                    <TableHead className="text-end">{t('admin.columns.stock')}</TableHead>
-                    <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                <ul className="space-y-3 md:hidden">
                   {recentAccessories.map((a) => (
-                    <TableRow key={a.id}>
-                      <TableCell className="font-medium">{a.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {labels.accessoryCategory(a.category)}
-                      </TableCell>
-                      <TableCell className="text-end">{a.quantity}</TableCell>
-                      <TableCell className="text-end">{formatPrice(a.price)}</TableCell>
-                    </TableRow>
+                    <AccessoryMobileRow
+                      key={a.id}
+                      accessory={a}
+                      category={labels.accessoryCategory(a.category)}
+                    />
                   ))}
-                </TableBody>
-              </Table>
+                </ul>
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('admin.columns.name')}</TableHead>
+                        <TableHead>{t('admin.columns.category')}</TableHead>
+                        <TableHead className="text-end">{t('admin.columns.stock')}</TableHead>
+                        <TableHead className="text-end">{t('admin.columns.price')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentAccessories.map((a) => (
+                        <TableRow key={a.id}>
+                          <TableCell className="font-medium">{a.name}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {labels.accessoryCategory(a.category)}
+                          </TableCell>
+                          <TableCell className="text-end">{a.quantity}</TableCell>
+                          <TableCell className="text-end">{formatPrice(a.price)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">{t('home.empty.noAccessories')}</p>
             )}
@@ -248,7 +277,7 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="w-full min-w-0">
         <CardHeader className="space-y-0 p-4 sm:p-6">
           <CardTitle className="text-base">{t('admin.recentActivity')}</CardTitle>
         </CardHeader>
@@ -284,6 +313,56 @@ export default function AdminDashboardPage() {
   );
 }
 
+function ProductMobileRow({
+  product,
+  category,
+  condition,
+}: {
+  product: Product;
+  category: string;
+  condition: string;
+}) {
+  return (
+    <li className="rounded-md border bg-muted/20 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate font-medium">{product.model}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {category} · {condition}
+          </div>
+        </div>
+        <div className="shrink-0 text-end">
+          <div className="font-semibold tabular-nums">{formatPrice(product.price)}</div>
+          <div className="text-xs text-muted-foreground tabular-nums">×{product.quantity}</div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function AccessoryMobileRow({
+  accessory,
+  category,
+}: {
+  accessory: Accessory;
+  category: string;
+}) {
+  return (
+    <li className="rounded-md border bg-muted/20 p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="truncate font-medium">{accessory.name}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">{category}</div>
+        </div>
+        <div className="shrink-0 text-end">
+          <div className="font-semibold tabular-nums">{formatPrice(accessory.price)}</div>
+          <div className="text-xs text-muted-foreground tabular-nums">×{accessory.quantity}</div>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 function StatCard({
   icon,
   label,
@@ -296,7 +375,7 @@ function StatCard({
   hint?: string;
 }) {
   return (
-    <Card>
+    <Card className="w-full min-w-0">
       <CardContent className="space-y-2 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2 text-xs uppercase tracking-wider text-muted-foreground">
           <span className="min-w-0 leading-snug">{label}</span>

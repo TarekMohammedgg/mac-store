@@ -35,16 +35,24 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     initializePromise = (async () => {
       try {
-        const { authService } = await import('@/services/auth.service');
-        const session = await authService.getCurrentSession();
+        const session = await Promise.race([
+          (async () => {
+            const { authService } = await import('@/services/auth.service');
+            const next = await authService.getCurrentSession();
+            if (!authListenerAttached) {
+              authListenerAttached = true;
+              authService.onAuthChange((value) => {
+                set({ session: value });
+              });
+            }
+            return next;
+          })(),
+          new Promise<null>((resolve) => {
+            window.setTimeout(() => resolve(null), 8_000);
+          }),
+        ]);
+        if (get().initialized) return;
         set({ session, initialized: true, hydrated: true });
-
-        if (!authListenerAttached) {
-          authListenerAttached = true;
-          authService.onAuthChange((next) => {
-            set({ session: next });
-          });
-        }
       } catch (error) {
         set({ initialized: true, hydrated: true, session: null });
         console.error('Auth initialize failed', error);
@@ -94,7 +102,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 /** Call once on the client to unlock gated UI and restore the Supabase session. */
 export async function rehydrateAuthStore(): Promise<void> {
   if (typeof window === 'undefined') return;
-  if (useAuthStore.getState().hydrated && useAuthStore.getState().initialized) return;
+  if (useAuthStore.getState().initialized) return;
+  initializePromise = null;
   useAuthStore.setState({ hydrated: true });
   await useAuthStore.getState().initialize();
 }
