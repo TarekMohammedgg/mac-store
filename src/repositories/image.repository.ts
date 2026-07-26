@@ -1,6 +1,7 @@
 'use client';
 
 import { notifyDataRefresh } from '@/lib/data-refresh';
+import { ensureWebpForUpload } from '@/lib/image-webp';
 import { supabase } from '@/lib/supabase/client';
 import { throwIfSupabaseError } from '@/lib/supabase/errors';
 import type { ImageRow } from '@/lib/supabase/mappers';
@@ -30,17 +31,17 @@ function mapImage(row: ImageRow): StoredImage {
 class SupabaseImageRepository implements ImageRepository {
   async save(input: ImageInput): Promise<StoredImage> {
     const id = generateId('img');
-    const filename = input.filename.replace(/\.[^.]+$/, '') + '.webp';
+    const webp = await ensureWebpForUpload(input.blob, input.filename);
     const uploaded = await uploadProductImageWebp({
       id,
-      blob: input.blob,
-      filename,
+      blob: webp.blob,
+      filename: webp.filename,
     });
     const record: StoredImage = {
       id,
-      blob: input.blob,
-      filename,
-      mimeType: 'image/webp',
+      blob: webp.blob,
+      filename: webp.filename,
+      mimeType: webp.mimeType,
       size: uploaded.size,
       createdAt: toIsoString(new Date()),
       publicUrl: uploaded.publicUrl,

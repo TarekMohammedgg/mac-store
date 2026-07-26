@@ -50,7 +50,11 @@ export function ImageUploader({
           onError?.(t('form.upload.errorSize', file.name));
           continue;
         }
-        await add(file);
+        try {
+          await add(file);
+        } catch {
+          onError?.(t('form.upload.errorConvert', file.name));
+        }
       }
     },
     [add, items.length, maxImages, onError, t],

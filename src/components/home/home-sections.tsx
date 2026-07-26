@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Laptop, Plug } from 'lucide-react';
+import { ArrowRight, Laptop, Plug, type LucideIcon } from 'lucide-react';
 
 import { HomeSectionsSkeleton } from '@/components/home/home-sections-skeleton';
 import { ImageThumb } from '@/components/shared/image-thumb';
@@ -14,6 +14,47 @@ import { useLocalizedLabels } from '@/hooks/use-localized-labels';
 import { formatPrice } from '@/lib/format';
 import { accessoryService } from '@/services/accessory.service';
 import { productService } from '@/services/product.service';
+
+function CatalogLink({
+  href,
+  icon: Icon,
+  label,
+  count,
+  isRtl,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  count: number;
+  isRtl: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-4 rounded-xl border border-border/80 bg-card p-5 shadow-sm transition-[border-color,box-shadow,background-color] duration-200 hover:border-foreground/15 hover:bg-accent/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+        <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <p className="mt-0.5 text-2xl font-semibold leading-none tracking-tight tabular-nums">
+          {count}
+        </p>
+      </div>
+      <ArrowRight
+        aria-hidden
+        className={`h-4 w-4 shrink-0 text-muted-foreground/50 transition-all duration-200 group-hover:text-foreground ${
+          isRtl
+            ? 'rotate-180 group-hover:-translate-x-0.5'
+            : 'group-hover:translate-x-0.5'
+        }`}
+      />
+    </Link>
+  );
+}
 
 export function HomeSections() {
   const { t, locale } = useI18n();
@@ -58,41 +99,21 @@ export function HomeSections() {
 
   return (
     <div>
-      <section className="container-narrow grid gap-4 pb-16 sm:grid-cols-2">
-        <Link
+      <section className="container-narrow grid gap-3 pb-16 sm:grid-cols-2">
+        <CatalogLink
           href="/products"
-          className="group flex items-center justify-between rounded-lg border p-6 transition-colors hover:bg-accent"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background">
-              <Laptop className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">{t('home.usedDevices')}</div>
-              <div className="text-2xl font-semibold">{productCount}</div>
-            </div>
-          </div>
-          <ArrowRight
-            className={`h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`}
-          />
-        </Link>
-        <Link
+          icon={Laptop}
+          label={t('home.usedDevices')}
+          count={productCount}
+          isRtl={isRtl}
+        />
+        <CatalogLink
           href="/accessories"
-          className="group flex items-center justify-between rounded-lg border p-6 transition-colors hover:bg-accent"
-        >
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background">
-              <Plug className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">{t('home.accessories')}</div>
-              <div className="text-2xl font-semibold">{accessoryCount}</div>
-            </div>
-          </div>
-          <ArrowRight
-            className={`h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 ${isRtl ? 'rotate-180 group-hover:-translate-x-1' : ''}`}
-          />
-        </Link>
+          icon={Plug}
+          label={t('home.accessories')}
+          count={accessoryCount}
+          isRtl={isRtl}
+        />
       </section>
 
       <section className="container-narrow pb-12">

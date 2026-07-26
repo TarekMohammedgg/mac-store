@@ -41,7 +41,7 @@ describe('I18nProvider', () => {
       </I18nProvider>,
     );
     expect(screen.getByTestId('locale').textContent).toBe('ar');
-    expect(screen.getByTestId('hello').textContent).toBe('أجهزة Apple،');
+    expect(screen.getByTestId('hello').textContent).toBe('أجهزة Apple مستعملة،');
   });
 
   it('switches locale and re-renders consumers', () => {

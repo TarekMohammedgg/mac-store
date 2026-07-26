@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-import type { AppSettings } from '@/models/settings';
+import type { AppSettings, SocialLink } from '@/models/settings';
 
 interface SettingsState {
   settings: AppSettings | null;
@@ -13,6 +13,9 @@ interface SettingsState {
     data: Partial<Omit<AppSettings, 'id' | 'updatedAt'>>,
   ) => Promise<AppSettings>;
 }
+
+/** Stable fallback so Zustand selectors / getServerSnapshot keep referential equality. */
+const EMPTY_SOCIAL_LINKS: SocialLink[] = [];
 
 let hydratePromise: Promise<void> | null = null;
 
@@ -52,4 +55,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
 export function useStoreBrandName(fallback: string): string {
   return useSettingsStore((state) => state.settings?.storeName) ?? fallback;
+}
+
+export function useStoreDescription(fallback = ''): string {
+  return useSettingsStore((state) => state.settings?.storeDescription) ?? fallback;
+}
+
+export function useSocialLinks() {
+  return useSettingsStore(
+    (state) => state.settings?.socialLinks ?? EMPTY_SOCIAL_LINKS,
+  );
 }

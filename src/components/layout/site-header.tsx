@@ -36,10 +36,13 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container-narrow flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5 font-semibold tracking-tight">
+      <div className="container-narrow flex h-16 items-center justify-between gap-2">
+        <Link
+          href="/"
+          className="flex min-w-0 items-center gap-2.5 font-semibold tracking-tight"
+        >
           <BrandLogo size="md" priority />
-          <span>{brandName}</span>
+          <span className="truncate">{brandName}</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
           {navItems.map((item) => {
@@ -63,7 +66,7 @@ export function SiteHeader() {
             );
           })}
         </nav>
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1">
           <SettingsMenu />
           {session?.role === 'admin' ? (
             <Link
@@ -75,23 +78,16 @@ export function SiteHeader() {
             </Link>
           ) : null}
           {session ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden sm:inline-flex"
-              onClick={handleLogout}
-            >
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4" />
               {t('nav.signOut')}
             </Button>
           ) : (
-            <Link
-              href="/login"
-              prefetch
-              className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline-flex"
-            >
-              {t('nav.signIn')}
-            </Link>
+            <Button asChild size="sm">
+              <Link href="/login" prefetch>
+                {t('nav.signIn')}
+              </Link>
+            </Button>
           )}
         </div>
       </div>

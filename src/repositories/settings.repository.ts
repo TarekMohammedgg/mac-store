@@ -6,7 +6,7 @@ import { mapSettings, toSettingsRow, type SettingsRow } from '@/lib/supabase/map
 import { supabase } from '@/lib/supabase/client';
 import { throwIfSupabaseError } from '@/lib/supabase/errors';
 import { toIsoString } from '@/lib/utils';
-import type { AppSettings } from '@/models/settings';
+import { createDefaultSocialLinks, type AppSettings } from '@/models/settings';
 
 import type { SettingsRepository } from './settings-repository.types';
 
@@ -19,6 +19,7 @@ function createDefaultSettings(): AppSettings {
     currency: DEFAULT_CURRENCY,
     showSerialNumber: false,
     defaultAdminUsername: process.env.NEXT_PUBLIC_DEFAULT_ADMIN_USERNAME ?? 'admin',
+    socialLinks: createDefaultSocialLinks(),
     updatedAt: toIsoString(new Date()),
   };
 }

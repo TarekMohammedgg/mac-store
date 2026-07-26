@@ -1,5 +1,10 @@
 import type { Accessory } from '@/models/accessory';
-import type { AppSettings } from '@/models/settings';
+import {
+  createDefaultSocialLinks,
+  type AppSettings,
+  type SocialLink,
+  type SocialPlatform,
+} from '@/models/settings';
 import type { Product } from '@/models/product';
 import type { Condition, ProductCategory, StorageType, Availability } from '@/lib/constants';
 import type { AccessoryCategory } from '@/lib/accessory-constants';
@@ -62,7 +67,18 @@ export interface SettingsRow {
   currency: string;
   show_serial_number: boolean;
   default_admin_username: string;
+  social_links: SocialLink[] | null;
   updated_at: string;
+}
+
+function mapSocialLinks(value: SocialLink[] | null | undefined): SocialLink[] {
+  if (!Array.isArray(value) || value.length === 0) return createDefaultSocialLinks();
+  return value.map((link) => ({
+    id: String(link.id ?? ''),
+    platform: (link.platform ?? 'other') as SocialPlatform,
+    label: String(link.label ?? ''),
+    url: String(link.url ?? ''),
+  }));
 }
 
 export function mapProduct(row: ProductRow): Product {
@@ -176,6 +192,7 @@ export function mapSettings(row: SettingsRow): AppSettings {
     currency: row.currency,
     showSerialNumber: row.show_serial_number,
     defaultAdminUsername: row.default_admin_username,
+    socialLinks: mapSocialLinks(row.social_links),
     updatedAt: row.updated_at,
   };
 }
@@ -189,6 +206,7 @@ export function toSettingsRow(settings: AppSettings): SettingsRow {
     currency: settings.currency,
     show_serial_number: settings.showSerialNumber,
     default_admin_username: settings.defaultAdminUsername,
+    social_links: settings.socialLinks,
     updated_at: settings.updatedAt,
   };
 }

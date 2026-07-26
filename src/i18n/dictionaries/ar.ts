@@ -31,6 +31,7 @@ export const ar: Dictionary = {
   },
   footer: {
     notice: 'المخزون المعروض هنا لأغراض الكتالوج فقط. قد تتغير الأسعار والتوفر.',
+    socialLinks: 'روابط التواصل',
   },
   nav: {
     home: 'الرئيسية',
@@ -46,10 +47,10 @@ export const ar: Dictionary = {
   },
   home: {
     badge: 'كتالوج المخزون',
-    title: 'أجهزة Apple،',
-    titleAccent: 'جاهزة للعرض.',
+    title: 'أجهزة Apple مستعملة،',
+    titleAccent: 'شوفها قبل ما تتحرك.',
     description:
-      'تصفح مخزون Mac وiPad وiPhone وApple Watch وAirPods المتوفر. كل جهاز فريد من نوعه. كل إكسسوار متوفر في المخزون. لا ضوضاء، فقط الكتالوج.',
+      'كل جهاز معروض بصور حقيقية من أرض الواقع. عاين الحالة والتفاصيل من بيتك، وقرّر وأنت مرتاح قبل ما تطلع.',
     browseDevices: 'تصفح الأجهزة',
     browseAccessories: 'تصفح الإكسسوارات',
     usedDevices: 'الأجهزة المستعملة',
@@ -339,6 +340,8 @@ export const ar: Dictionary = {
       errorFormat: (name) => `"${name}" ليس بتنسيق صورة مدعوم.`,
       errorLimit: (max) => `يمكنك رفع حتى ${max} صور.`,
       errorSize: (name) => `"${name}" يتجاوز حد الـ 8 ميجابايت.`,
+      errorConvert: (name) =>
+        `تعذر تحويل "${name}" إلى WebP. جرّب صورة أو متصفحًا آخر.`,
     },
     cover: 'غلاف',
     addSpec: 'إضافة مواصفة',
@@ -356,8 +359,26 @@ export const ar: Dictionary = {
       currency: 'العملة',
       showSerial: 'إظهار الأرقام التسلسلية للزوار',
       showSerialHint: 'مفعّل بشكل افتراضي. الأرقام التسلسلية الداخلية تبقى خاصة.',
+      socialLinks: 'روابط التواصل',
+      socialLinksHint: 'تظهر في تذييل الموقع. اترك الرابط فارغاً لإخفائه.',
+      socialPlatform: 'المنصة',
+      socialLabel: 'التسمية',
+      socialUrl: 'الرابط',
+      addSocialLink: 'إضافة رابط تواصل',
+      removeSocialLink: 'إزالة',
       reset: 'إعادة التعيين إلى الافتراضي',
       save: 'حفظ الإعدادات',
+    },
+    socialPlatforms: {
+      facebook: 'فيسبوك',
+      whatsapp: 'واتساب',
+      instagram: 'إنستغرام',
+      x: 'إكس (تويتر)',
+      youtube: 'يوتيوب',
+      telegram: 'تيليجرام',
+      tiktok: 'تيك توك',
+      linkedin: 'لينكدإن',
+      other: 'أخرى',
     },
     account: {
       title: 'الحساب',

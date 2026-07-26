@@ -31,6 +31,7 @@ export const en: Dictionary = {
   },
   footer: {
     notice: 'Inventory shown here is for catalog purposes only. Prices and availability may change.',
+    socialLinks: 'Social links',
   },
   nav: {
     home: 'Home',
@@ -46,10 +47,10 @@ export const en: Dictionary = {
   },
   home: {
     badge: 'Inventory Catalog',
-    title: 'Apple devices,',
-    titleAccent: 'ready to view.',
+    title: 'Used Apple devices,',
+    titleAccent: 'see them before you go.',
     description:
-      'Browse available Mac, iPad, iPhone, Apple Watch and AirPods inventory. Every device is unique. Every accessory is in stock. No noise, just the catalog.',
+      'Every device is shown as it really is—real photos, real condition. Inspect the details from home, then decide when you\'re ready to come.',
     browseDevices: 'Browse Devices',
     browseAccessories: 'Browse Accessories',
     usedDevices: 'Used devices',
@@ -337,6 +338,8 @@ export const en: Dictionary = {
       errorFormat: (name) => `"${name}" is not a supported image format.`,
       errorLimit: (max) => `You can upload up to ${max} images.`,
       errorSize: (name) => `"${name}" exceeds the 8MB limit.`,
+      errorConvert: (name) =>
+        `Could not convert "${name}" to WebP. Try another image or browser.`,
     },
     cover: 'Cover',
     addSpec: 'Add specification',
@@ -354,8 +357,26 @@ export const en: Dictionary = {
       currency: 'Currency',
       showSerial: 'Show serial numbers to visitors',
       showSerialHint: 'Off by default. Internal serial numbers stay private.',
+      socialLinks: 'Social links',
+      socialLinksHint: 'Shown in the site footer. Leave the URL empty to hide a link.',
+      socialPlatform: 'Platform',
+      socialLabel: 'Label',
+      socialUrl: 'URL',
+      addSocialLink: 'Add social link',
+      removeSocialLink: 'Remove',
       reset: 'Reset to defaults',
       save: 'Save settings',
+    },
+    socialPlatforms: {
+      facebook: 'Facebook',
+      whatsapp: 'WhatsApp',
+      instagram: 'Instagram',
+      x: 'X (Twitter)',
+      youtube: 'YouTube',
+      telegram: 'Telegram',
+      tiktok: 'TikTok',
+      linkedin: 'LinkedIn',
+      other: 'Other',
     },
     account: {
       title: 'Account',

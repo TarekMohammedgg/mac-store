@@ -31,6 +31,7 @@ export interface Dictionary {
   };
   footer: {
     notice: string;
+    socialLinks: string;
   };
   nav: {
     home: string;
@@ -334,6 +335,7 @@ export interface Dictionary {
       errorFormat: (name: string) => string;
       errorLimit: (max: number) => string;
       errorSize: (name: string) => string;
+      errorConvert: (name: string) => string;
     };
     cover: string;
     addSpec: string;
@@ -351,8 +353,26 @@ export interface Dictionary {
       currency: string;
       showSerial: string;
       showSerialHint: string;
+      socialLinks: string;
+      socialLinksHint: string;
+      socialPlatform: string;
+      socialLabel: string;
+      socialUrl: string;
+      addSocialLink: string;
+      removeSocialLink: string;
       reset: string;
       save: string;
+    };
+    socialPlatforms: {
+      facebook: string;
+      whatsapp: string;
+      instagram: string;
+      x: string;
+      youtube: string;
+      telegram: string;
+      tiktok: string;
+      linkedin: string;
+      other: string;
     };
     account: {
       title: string;

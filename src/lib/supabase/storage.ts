@@ -21,6 +21,11 @@ export async function uploadProductImageWebp(params: {
   blob: Blob;
   filename: string;
 }): Promise<{ storagePath: string; publicUrl: string; size: number }> {
+  if (params.blob.type && params.blob.type !== 'image/webp') {
+    throw new Error(
+      `Refusing to upload non-WebP image (${params.blob.type}). Convert to WebP first.`,
+    );
+  }
   const storagePath = `${params.id}.webp`;
   const { error: uploadError } = await supabase.storage
     .from(PRODUCT_IMAGES_BUCKET)

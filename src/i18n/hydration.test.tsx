@@ -50,7 +50,7 @@ describe('hydration contract', () => {
         <Probe />
       </I18nProvider>,
     );
-    expect(screen.getByTestId('hello').textContent).toBe('أجهزة Apple،');
+    expect(screen.getByTestId('hello').textContent).toBe('أجهزة Apple مستعملة،');
   });
 
   it('after mount, an updated cookie takes effect without re-rendering the children that did not call setLocale', () => {

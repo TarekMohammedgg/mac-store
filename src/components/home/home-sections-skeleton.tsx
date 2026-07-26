@@ -1,9 +1,9 @@
 export function HomeSectionsSkeleton() {
   return (
     <div className="container-narrow space-y-12 pb-24">
-      <section className="grid gap-4 pb-4 sm:grid-cols-2">
-        <div className="h-24 animate-pulse rounded-lg border bg-muted" />
-        <div className="h-24 animate-pulse rounded-lg bg-muted" />
+      <section className="grid gap-3 pb-4 sm:grid-cols-2">
+        <div className="h-[4.75rem] animate-pulse rounded-xl border bg-muted" />
+        <div className="h-[4.75rem] animate-pulse rounded-xl border bg-muted" />
       </section>
       <section className="space-y-6">
         <div className="space-y-2">

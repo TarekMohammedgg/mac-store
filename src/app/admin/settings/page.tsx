@@ -1,9 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useFieldArray, useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
@@ -13,10 +13,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { TextAreaField, TextField } from '@/components/forms/form-fields';
+import { SelectField, TextAreaField, TextField } from '@/components/forms/form-fields';
 import { settingsService } from '@/services/settings.service';
 import { authService } from '@/services/auth.service';
 import { useSettingsStore } from '@/stores/settings.store';
+import { createDefaultSocialLinks, SOCIAL_PLATFORMS } from '@/models/settings';
+import { generateId } from '@/lib/utils';
 import {
   settingsFormSchema,
   type SettingsFormValues,
@@ -29,10 +31,11 @@ const EMPTY_SETTINGS: SettingsFormValues = {
   contactEmail: '',
   currency: 'EGP',
   showSerialNumber: false,
+  socialLinks: createDefaultSocialLinks(),
 };
 
 export default function AdminSettingsPage() {
-  const { t } = useI18n();
+  const { t, dictionary } = useI18n();
 
   React.useEffect(() => {
     void settingsService.ensureSeeded();
@@ -45,6 +48,12 @@ export default function AdminSettingsPage() {
     defaultValues: EMPTY_SETTINGS,
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: settingsForm.control,
+    name: 'socialLinks',
+    keyName: '_key',
+  });
+
   React.useEffect(() => {
     if (!settings) return;
     settingsForm.reset({
@@ -53,6 +62,9 @@ export default function AdminSettingsPage() {
       contactEmail: settings.contactEmail,
       currency: settings.currency,
       showSerialNumber: settings.showSerialNumber,
+      socialLinks: settings.socialLinks.length
+        ? settings.socialLinks
+        : createDefaultSocialLinks(),
     });
   }, [settings, settingsForm]);
 
@@ -60,6 +72,11 @@ export default function AdminSettingsPage() {
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
   });
+
+  const platformOptions = SOCIAL_PLATFORMS.map((platform) => ({
+    value: platform,
+    label: dictionary.settings.socialPlatforms[platform],
+  }));
 
   const onSaveSettings = settingsForm.handleSubmit(async (values) => {
     try {
@@ -96,8 +113,18 @@ export default function AdminSettingsPage() {
       contactEmail: next.contactEmail,
       currency: next.currency,
       showSerialNumber: next.showSerialNumber,
+      socialLinks: next.socialLinks,
     });
     toast.success(t('toast.settingsReset'));
+  };
+
+  const addSocialLink = () => {
+    append({
+      id: generateId('social'),
+      platform: 'other',
+      label: '',
+      url: '',
+    });
   };
 
   return (
@@ -156,6 +183,59 @@ export default function AdminSettingsPage() {
                 )}
               />
             </div>
+
+            <div className="space-y-3 rounded-lg border p-4">
+              <div>
+                <Label>{t('settings.store.socialLinks')}</Label>
+                <p className="text-xs text-muted-foreground">
+                  {t('settings.store.socialLinksHint')}
+                </p>
+              </div>
+              <div className="space-y-3">
+                {fields.map((field, index) => (
+                  <div
+                    key={field._key}
+                    className="grid gap-3 rounded-md border bg-muted/30 p-3 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)_minmax(0,1.4fr)_auto]"
+                  >
+                    <SelectField
+                      control={settingsForm.control}
+                      name={`socialLinks.${index}.platform`}
+                      label={t('settings.store.socialPlatform')}
+                      options={platformOptions}
+                    />
+                    <TextField
+                      control={settingsForm.control}
+                      name={`socialLinks.${index}.label`}
+                      label={t('settings.store.socialLabel')}
+                      required
+                    />
+                    <TextField
+                      control={settingsForm.control}
+                      name={`socialLinks.${index}.url`}
+                      label={t('settings.store.socialUrl')}
+                      placeholder="https://"
+                    />
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t('settings.store.removeSocialLink')}
+                        onClick={() => remove(index)}
+                        disabled={fields.length <= 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={addSocialLink}>
+                <Plus className="h-4 w-4" />
+                {t('settings.store.addSocialLink')}
+              </Button>
+            </div>
+
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={onReset}>
                 {t('settings.store.reset')}

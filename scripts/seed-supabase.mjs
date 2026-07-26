@@ -172,6 +172,10 @@ async function main() {
     currency: 'EGP',
     show_serial_number: false,
     default_admin_username: 'admin',
+    social_links: [
+      { id: 'social_facebook', platform: 'facebook', label: 'Facebook', url: '' },
+      { id: 'social_whatsapp', platform: 'whatsapp', label: 'WhatsApp', url: '' },
+    ],
     updated_at: now,
   });
   if (settingsError) throw settingsError;

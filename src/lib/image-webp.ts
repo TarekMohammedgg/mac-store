@@ -57,6 +57,14 @@ export async function compressImageToWebp(
           reject(new Error('WebP encoding failed.'));
           return;
         }
+        if (result.type !== 'image/webp') {
+          reject(
+            new Error(
+              'Browser did not produce a WebP image. Try another browser or convert the file first.',
+            ),
+          );
+          return;
+        }
         resolve(result);
       },
       'image/webp',
@@ -69,4 +77,21 @@ export async function compressImageToWebp(
     filename: extensionToWebp(sourceName),
     mimeType: 'image/webp',
   };
+}
+
+/**
+ * Guarantees a WebP blob before upload. Skips re-encoding when already WebP.
+ */
+export async function ensureWebpForUpload(
+  file: File | Blob,
+  filename: string,
+): Promise<{ blob: Blob; filename: string; mimeType: 'image/webp' }> {
+  if (file.type === 'image/webp') {
+    return {
+      blob: file,
+      filename: extensionToWebp(filename),
+      mimeType: 'image/webp',
+    };
+  }
+  return compressImageToWebp(file, { filename });
 }
