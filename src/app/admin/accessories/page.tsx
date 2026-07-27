@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/table';
 import { formatPrice } from '@/lib/format';
 import { accessoryService } from '@/services/accessory.service';
+import { InventoryImportDialog } from '@/components/admin/inventory-import-dialog';
 
 export default function AdminAccessoriesPage() {
   const router = useRouter();
@@ -92,11 +93,14 @@ export default function AdminAccessoriesPage() {
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('nav.accessories')}</h1>
           <p className="text-sm text-muted-foreground">{t('admin.dashboardHint')}</p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/admin/accessories/new">
-            <Plus className="h-4 w-4" /> {t('admin.newAccessory')}
-          </Link>
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <InventoryImportDialog mode="accessories" />
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/admin/accessories/new">
+              <Plus className="h-4 w-4" /> {t('admin.newAccessory')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>

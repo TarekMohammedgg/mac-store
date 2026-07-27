@@ -24,6 +24,7 @@ export interface AccessoryRepository {
   search(params: AccessorySearchParams): Promise<Accessory[]>;
   findById(id: string): Promise<Accessory | null>;
   create(data: AccessoryCreate): Promise<Accessory>;
+  createMany(items: AccessoryCreate[]): Promise<Accessory[]>;
   update(id: string, data: AccessoryUpdate): Promise<Accessory>;
   delete(id: string): Promise<void>;
   duplicate(id: string): Promise<Accessory>;

@@ -112,6 +112,24 @@ class SupabaseAccessoryRepository implements AccessoryRepository {
     return mapAccessory(inserted as AccessoryRow);
   }
 
+  async createMany(items: AccessoryCreate[]): Promise<Accessory[]> {
+    if (items.length === 0) return [];
+    const now = toIsoString(new Date());
+    const records: Accessory[] = items.map((data) => ({
+      ...data,
+      id: generateId('acc'),
+      createdAt: now,
+      updatedAt: now,
+    }));
+    const { data: inserted, error } = await supabase
+      .from('accessories')
+      .insert(records.map((record) => toAccessoryRow(record)))
+      .select('*');
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return ((inserted ?? []) as AccessoryRow[]).map(mapAccessory);
+  }
+
   async update(id: string, data: AccessoryUpdate): Promise<Accessory> {
     const existing = await this.findById(id);
     if (!existing) throw new Error(`Accessory ${id} not found`);

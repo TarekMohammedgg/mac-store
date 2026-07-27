@@ -41,6 +41,10 @@ export interface ProductRow {
   cover_image_id: string | null;
   image_ids: string[] | null;
   cost_price: number | string | null;
+  year: number | null;
+  screen_size: string | null;
+  gpu: string | null;
+  warranty: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -106,6 +110,10 @@ export function mapProduct(row: ProductRow): Product {
     coverImageId: row.cover_image_id,
     imageIds: row.image_ids ?? [],
     costPrice: row.cost_price === null || row.cost_price === undefined ? null : Number(row.cost_price),
+    year: row.year ?? null,
+    screenSize: row.screen_size ?? null,
+    gpu: row.gpu ?? null,
+    warranty: row.warranty ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -141,6 +149,10 @@ export function toProductRow(
     cover_image_id: product.coverImageId,
     image_ids: product.imageIds,
     cost_price: product.costPrice,
+    year: product.year,
+    screen_size: product.screenSize,
+    gpu: product.gpu,
+    warranty: product.warranty,
     ...(product.createdAt ? { created_at: product.createdAt } : {}),
     ...(product.updatedAt ? { updated_at: product.updatedAt } : {}),
   };

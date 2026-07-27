@@ -36,6 +36,10 @@ function matches(product: Product, filters: ReturnType<typeof useProductFilters>
       String(product.ram),
       String(product.storage),
       product.storageType,
+      product.year !== null ? String(product.year) : '',
+      product.screenSize ?? '',
+      product.gpu ?? '',
+      product.warranty ?? '',
     ]
       .join(' ')
       .toLowerCase();

@@ -36,7 +36,11 @@ function matchesQuery(product: Product, query: string): boolean {
     product.serialNumber.toLowerCase().includes(needle) ||
     product.category.toLowerCase().includes(needle) ||
     product.condition.toLowerCase().includes(needle) ||
-    product.description.toLowerCase().includes(needle)
+    product.description.toLowerCase().includes(needle) ||
+    (product.gpu?.toLowerCase().includes(needle) ?? false) ||
+    (product.warranty?.toLowerCase().includes(needle) ?? false) ||
+    (product.screenSize?.toLowerCase().includes(needle) ?? false) ||
+    (product.year !== null && String(product.year).includes(needle))
   );
 }
 
@@ -127,6 +131,24 @@ class SupabaseProductRepository implements ProductRepository {
     throwIfSupabaseError(error);
     notifyDataRefresh();
     return mapProduct(inserted as ProductRow);
+  }
+
+  async createMany(items: ProductCreate[]): Promise<Product[]> {
+    if (items.length === 0) return [];
+    const now = toIsoString(new Date());
+    const records: Product[] = items.map((data) => ({
+      ...data,
+      id: generateId('prd'),
+      createdAt: now,
+      updatedAt: now,
+    }));
+    const { data: inserted, error } = await supabase
+      .from('products')
+      .insert(records.map((record) => toProductRow(record)))
+      .select('*');
+    throwIfSupabaseError(error);
+    notifyDataRefresh();
+    return ((inserted ?? []) as ProductRow[]).map(mapProduct);
   }
 
   async update(id: string, data: ProductUpdate): Promise<Product> {

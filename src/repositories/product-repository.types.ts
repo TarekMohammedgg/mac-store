@@ -39,6 +39,7 @@ export interface ProductRepository {
   search(params: ProductSearchParams): Promise<Product[]>;
   findById(id: string): Promise<Product | null>;
   create(data: ProductCreate): Promise<Product>;
+  createMany(items: ProductCreate[]): Promise<Product[]>;
   update(id: string, data: ProductUpdate): Promise<Product>;
   delete(id: string): Promise<void>;
   duplicate(id: string): Promise<Product>;

@@ -36,6 +36,12 @@ export const productFormSchema = z.object({
   cycleCount: optionalNumericString.pipe(
     z.number().int().min(0).max(20000).optional(),
   ),
+  year: optionalNumericString.pipe(
+    z.number().int().min(1990).max(2100).optional(),
+  ),
+  screenSize: z.string().max(40, 'Too long').optional().or(z.literal('')),
+  gpu: z.string().max(120, 'Too long').optional().or(z.literal('')),
+  warranty: z.string().max(500, 'Too long').optional().or(z.literal('')),
   condition: z.enum(CONDITIONS),
   price: numericString.pipe(z.number().min(0, 'Price must be at least 0')),
   quantity: numericString.pipe(z.number().int().min(0, 'Quantity must be at least 0')),

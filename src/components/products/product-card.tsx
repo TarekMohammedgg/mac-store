@@ -17,6 +17,17 @@ function availabilityVariant(availability: Product['availability']) {
   return 'secondary' as const;
 }
 
+function buildSpecLine(product: Product): string {
+  const parts: string[] = [];
+  if (product.year !== null) parts.push(String(product.year));
+  if (product.screenSize) parts.push(product.screenSize);
+  if (product.cpu) parts.push(product.cpu);
+  parts.push(formatRam(product.ram));
+  parts.push(`${formatStorage(product.storage)} ${product.storageType}`);
+  if (product.gpu) parts.push(product.gpu);
+  return parts.join(' · ');
+}
+
 function ProductCardImpl({ product }: ProductCardProps) {
   const labels = useLocalizedLabels();
 
@@ -51,19 +62,10 @@ function ProductCardImpl({ product }: ProductCardProps) {
             <h3 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-foreground">
               {product.model}
             </h3>
-            <p className="line-clamp-1 text-xs text-muted-foreground">
-              <span>{product.cpu}</span>
-              <span aria-hidden className="mx-1.5">
-                ·
-              </span>
-              <span>{formatRam(product.ram)}</span>
-              <span aria-hidden className="mx-1.5">
-                ·
-              </span>
-              <span>
-                {formatStorage(product.storage)} {product.storageType}
-              </span>
-            </p>
+            <p className="line-clamp-2 text-xs text-muted-foreground">{buildSpecLine(product)}</p>
+            {product.warranty ? (
+              <p className="line-clamp-1 text-xs text-muted-foreground/90">{product.warranty}</p>
+            ) : null}
           </div>
 
           <div className="mt-auto flex items-end justify-between gap-3 border-t border-border/60 pt-3">

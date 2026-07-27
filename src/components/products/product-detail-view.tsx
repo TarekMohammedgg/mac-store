@@ -3,7 +3,17 @@
 import * as React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Battery, CheckCircle2, Cpu, HardDrive, MemoryStick } from 'lucide-react';
+import {
+  ArrowLeft,
+  Battery,
+  Calendar,
+  CheckCircle2,
+  Cpu,
+  HardDrive,
+  MemoryStick,
+  Monitor,
+  ShieldCheck,
+} from 'lucide-react';
 
 import { LazyImageGallery } from '@/components/shared/lazy-image-gallery';
 import { useCachedLiveQuery } from '@/hooks/use-cached-live-query';
@@ -66,6 +76,8 @@ export function ProductDetailView({ id }: { id: string }) {
           <div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">
               {labels.productCategory(product.category)}
+              {product.year !== null ? ` · ${product.year}` : ''}
+              {product.screenSize ? ` · ${product.screenSize}` : ''}
             </div>
             <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
               {product.model}
@@ -96,7 +108,25 @@ export function ProductDetailView({ id }: { id: string }) {
           <Separator />
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <SpecItem icon={<Cpu className="h-4 w-4" />} label={t('product.specs.cpu')} value={product.cpu} />
+            {product.year !== null && (
+              <SpecItem
+                icon={<Calendar className="h-4 w-4" />}
+                label={t('product.specs.year')}
+                value={String(product.year)}
+              />
+            )}
+            {product.screenSize && (
+              <SpecItem
+                icon={<Monitor className="h-4 w-4" />}
+                label={t('product.specs.screenSize')}
+                value={product.screenSize}
+              />
+            )}
+            <SpecItem
+              icon={<Cpu className="h-4 w-4" />}
+              label={t('product.specs.cpu')}
+              value={product.cpu}
+            />
             <SpecItem
               icon={<MemoryStick className="h-4 w-4" />}
               label={t('product.specs.ram')}
@@ -107,6 +137,13 @@ export function ProductDetailView({ id }: { id: string }) {
               label={t('product.specs.storage')}
               value={`${formatStorage(product.storage)} ${product.storageType}`}
             />
+            {product.gpu && (
+              <SpecItem
+                icon={<Cpu className="h-4 w-4" />}
+                label={t('product.specs.gpu')}
+                value={product.gpu}
+              />
+            )}
             {product.batteryHealth !== null && (
               <SpecItem
                 icon={<Battery className="h-4 w-4" />}
@@ -127,6 +164,15 @@ export function ProductDetailView({ id }: { id: string }) {
               value={labels.condition(product.condition)}
             />
           </div>
+
+          {product.warranty && (
+            <div className="rounded-lg border bg-card p-4">
+              <div className="mb-1 flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                <ShieldCheck className="h-4 w-4" /> {t('product.specs.warranty')}
+              </div>
+              <p className="text-sm font-medium leading-relaxed">{product.warranty}</p>
+            </div>
+          )}
 
           {product.description && (
             <div>

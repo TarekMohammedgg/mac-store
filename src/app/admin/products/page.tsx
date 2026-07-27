@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/table';
 import { formatPrice } from '@/lib/format';
 import { productService } from '@/services/product.service';
+import { InventoryImportDialog } from '@/components/admin/inventory-import-dialog';
 
 export default function AdminProductsPage() {
   const router = useRouter();
@@ -82,6 +83,10 @@ export default function AdminProductsPage() {
       product.model.toLowerCase().includes(needle) ||
       product.serialNumber.toLowerCase().includes(needle) ||
       product.cpu.toLowerCase().includes(needle) ||
+      (product.gpu?.toLowerCase().includes(needle) ?? false) ||
+      (product.warranty?.toLowerCase().includes(needle) ?? false) ||
+      (product.screenSize?.toLowerCase().includes(needle) ?? false) ||
+      (product.year !== null && String(product.year).includes(needle)) ||
       labels.productCategory(product.category).toLowerCase().includes(needle)
     );
   });
@@ -93,11 +98,14 @@ export default function AdminProductsPage() {
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('nav.products')}</h1>
           <p className="text-sm text-muted-foreground">{t('admin.dashboardHint')}</p>
         </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href="/admin/products/new">
-            <Plus className="h-4 w-4" /> {t('admin.newDevice')}
-          </Link>
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <InventoryImportDialog mode="products" />
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/admin/products/new">
+              <Plus className="h-4 w-4" /> {t('admin.newDevice')}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -136,9 +144,21 @@ export default function AdminProductsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="truncate font-medium">{product.model}</div>
                         <div className="text-xs text-muted-foreground">
-                          {labels.productCategory(product.category)} ·{' '}
-                          {labels.condition(product.condition)}
+                          {[
+                            labels.productCategory(product.category),
+                            product.year,
+                            product.screenSize,
+                            product.cpu,
+                            product.gpu,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
                         </div>
+                        {product.warranty ? (
+                          <div className="truncate text-xs text-muted-foreground/80">
+                            {product.warranty}
+                          </div>
+                        ) : null}
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <Badge
                             variant={
@@ -249,8 +269,20 @@ export default function AdminProductsPage() {
                         <TableCell>
                           <div className="font-medium">{product.model}</div>
                           <div className="text-xs text-muted-foreground">
-                            {product.cpu} · {product.ram}GB · {product.storage}GB
+                            {[
+                              product.year,
+                              product.screenSize,
+                              product.cpu,
+                              `${product.ram}GB`,
+                              `${product.storage}GB`,
+                              product.gpu,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')}
                           </div>
+                          {product.warranty ? (
+                            <div className="text-xs text-muted-foreground/80">{product.warranty}</div>
+                          ) : null}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {labels.productCategory(product.category)}

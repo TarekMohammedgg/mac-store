@@ -134,6 +134,10 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
         storageType: data.storageType,
         batteryHealth: data.batteryHealth ?? null,
         cycleCount: data.cycleCount ?? null,
+        year: data.year ?? null,
+        screenSize: data.screenSize?.trim() ? data.screenSize.trim() : null,
+        gpu: data.gpu?.trim() ? data.gpu.trim() : null,
+        warranty: data.warranty?.trim() ? data.warranty.trim() : null,
         condition: data.condition,
         price: data.price,
         quantity: data.quantity,
@@ -316,6 +320,33 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
                 placeholder={t('form.placeholders.cycleCount')}
               />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <TextField
+                control={control}
+                name="year"
+                label={t('form.fields.year')}
+                type="number"
+                placeholder={t('form.placeholders.year')}
+              />
+              <TextField
+                control={control}
+                name="screenSize"
+                label={t('form.fields.screenSize')}
+                placeholder={t('form.placeholders.screenSize')}
+              />
+            </div>
+            <TextField
+              control={control}
+              name="gpu"
+              label={t('form.fields.gpu')}
+              placeholder={t('form.placeholders.gpu')}
+            />
+            <TextField
+              control={control}
+              name="warranty"
+              label={t('form.fields.warranty')}
+              placeholder={t('form.placeholders.warranty')}
+            />
           </CardContent>
         </Card>
       </div>
@@ -457,6 +488,10 @@ function buildDefaults(product?: Product): ProductFormValues {
     storageType: product?.storageType ?? 'SSD',
     batteryHealth: product?.batteryHealth ?? undefined,
     cycleCount: product?.cycleCount ?? undefined,
+    year: product?.year ?? undefined,
+    screenSize: product?.screenSize ?? '',
+    gpu: product?.gpu ?? '',
+    warranty: product?.warranty ?? '',
     condition: product?.condition ?? 'excellent',
     price: product?.price ?? 0,
     quantity: product?.quantity ?? 1,

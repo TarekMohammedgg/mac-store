@@ -32,6 +32,14 @@ export interface Product {
   coverImageId: string | null;
   imageIds: string[];
   costPrice: number | null;
+  /** Model year from inventory sheet, e.g. 2022 */
+  year: number | null;
+  /** Display size, e.g. 13.6" or 27 */
+  screenSize: string | null;
+  /** GPU description, e.g. 10-Core GPU */
+  gpu: string | null;
+  /** Warranty / coverage notes */
+  warranty: string | null;
   createdAt: string;
   updatedAt: string;
 }

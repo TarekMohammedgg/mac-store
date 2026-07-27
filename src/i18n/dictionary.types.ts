@@ -120,6 +120,10 @@ export interface Dictionary {
       battery: string;
       cycleCount: string;
       condition: string;
+      year: string;
+      screenSize: string;
+      gpu: string;
+      warranty: string;
     };
   };
   accessories: {
@@ -183,6 +187,46 @@ export interface Dictionary {
     dashboardHint: string;
     newDevice: string;
     newAccessory: string;
+    importExcel: string;
+    import: {
+      title: string;
+      description: string;
+      productsTitle: string;
+      productsDescription: string;
+      accessoriesTitle: string;
+      accessoriesDescription: string;
+      selectFile: string;
+      expectedFormat: string;
+      accessoriesExpectedFormat: string;
+      previewDevices: (count: number) => string;
+      previewAccessories: (count: number) => string;
+      skippedSheets: string;
+      rowErrors: (count: number) => string;
+      sampleDevices: string;
+      sampleAccessories: string;
+      confirm: string;
+      importing: string;
+      noRows: string;
+      columnReview: string;
+      statusMatched: string;
+      statusFolded: string;
+      statusIgnored: string;
+      statusMissing: string;
+      kindProducts: string;
+      kindAccessories: string;
+      kindSkipped: string;
+      fileColumns: string;
+      defaults: string;
+      skippedAccessoriesHint: string;
+      skippedSpareHint: string;
+      skippedOtherHint: string;
+      editDevices: string;
+      editAccessories: string;
+      includeRow: string;
+      productsButton: string;
+      accessoriesButton: string;
+      tableHint: string;
+    };
     editDevice: string;
     editAccessory: string;
     addDevice: string;
@@ -390,6 +434,10 @@ export interface Dictionary {
       storageType: string;
       batteryHealth: string;
       cycleCount: string;
+      year: string;
+      screenSize: string;
+      gpu: string;
+      warranty: string;
       name: string;
       quantity: string;
       description: string;
@@ -409,6 +457,10 @@ export interface Dictionary {
       storage: string;
       batteryHealth: string;
       cycleCount: string;
+      year: string;
+      screenSize: string;
+      gpu: string;
+      warranty: string;
       name: string;
       description: string;
       internalNotes: string;
@@ -559,6 +611,8 @@ export interface Dictionary {
     duplicateFailed: string;
     deleteFailed: string;
     saveFailed: (kind: string) => string;
+    importSuccess: (devices: number, accessories: number) => string;
+    importFailed: string;
   };
   errors: {
     notFoundTitle: string;
